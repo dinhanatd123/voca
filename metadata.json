@@ -1,0 +1,6 @@
+{
+  "name": "LexiFlow — Học Từ Vựng 3 Tầng (Từ → Cụm → Câu)",
+  "description": "Ứng dụng học từ vựng tiếng Anh 3 tầng (Từ đơn → Cụm Collocation → Câu hoàn chỉnh) chuẩn TOEIC, IELTS, Giao tiếp Công sở & Đời thường kèm SRS và AI Chấm Câu.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
