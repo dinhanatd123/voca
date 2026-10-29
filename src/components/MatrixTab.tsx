@@ -1,166 +1,212 @@
 import React from 'react';
-import { Volume2, Copy } from 'lucide-react';
 import { VocabItem, ContextDomain } from '../types';
 
 interface MatrixTabProps {
-  vocabList: VocabItem[];
-  selectedWordId: string;
-  onSelectWordId: (wordId: string) => void;
+  words: VocabItem[];
+  currentWord: VocabItem;
+  onSelectWord: (wordId: string) => void;
   onSpeak: (text: string, lang?: 'en-US' | 'en-GB') => void;
-  onCopy: (text: string, label: string) => void;
 }
 
-const MATRIX_STYLES: Record<
-  ContextDomain,
-  { border: string; headerBg: string; title: string; accentText: string }
-> = {
-  toeic: {
-    border: 'border-blue-200',
-    headerBg: 'bg-blue-50/80',
-    title: 'TOEIC (Thương mại & Đề thi)',
-    accentText: 'text-blue-700',
+const MATRIX_CTX_ORDER: {
+  key: ContextDomain;
+  icon: string;
+  title: string;
+  formality: string;
+  barColor: string;
+}[] = [
+  {
+    key: 'toeic',
+    icon: '💼',
+    title: '1. TOEIC (Thương mại & Dịch vụ)',
+    formality: '85%',
+    barColor: 'bg-indigo-600',
   },
-  ielts: {
-    border: 'border-purple-200',
-    headerBg: 'bg-purple-50/80',
-    title: 'IELTS Academic (Học thuật Band 7.0+)',
-    accentText: 'text-purple-700',
+  {
+    key: 'ielts',
+    icon: '🎓',
+    title: '2. IELTS Academic (Học thuật Band 7.5+)',
+    formality: '95%',
+    barColor: 'bg-violet-600',
   },
-  office: {
-    border: 'border-indigo-200',
-    headerBg: 'bg-indigo-50/80',
-    title: 'Giao tiếp Công sở (Email & Họp)',
-    accentText: 'text-indigo-700',
+  {
+    key: 'workplace',
+    icon: '🏢',
+    title: '3. Giao tiếp Công sở (Email & Họp hành)',
+    formality: '80%',
+    barColor: 'bg-emerald-600',
   },
-  daily: {
-    border: 'border-emerald-200',
-    headerBg: 'bg-emerald-50/80',
-    title: 'Giao tiếp Đời thường (Tự nhiên)',
-    accentText: 'text-emerald-700',
+  {
+    key: 'daily',
+    icon: '☕',
+    title: '4. Giao tiếp Đời thường (Nhà hàng & Du lịch)',
+    formality: '45%',
+    barColor: 'bg-amber-500',
   },
-};
+];
 
 export const MatrixTab: React.FC<MatrixTabProps> = ({
-  vocabList,
-  selectedWordId,
-  onSelectWordId,
+  words,
+  currentWord: w,
+  onSelectWord,
   onSpeak,
-  onCopy,
 }) => {
-  const item = vocabList.find((w) => w.id === selectedWordId) || vocabList[0];
+  const handleSpeakAll = () => {
+    const combined = `${w.word}. TOEIC: ${w.contexts.toeic.chunk}. IELTS: ${w.contexts.ielts.chunk}. Workplace: ${w.contexts.workplace.chunk}.`;
+    onSpeak(combined, 'en-US');
+  };
 
   return (
-    <section aria-label="Ma Trận 1 Từ 4 Ngữ Cảnh" className="space-y-6">
-      <div className="bg-white p-5 rounded-xl border border-slate-200">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <section id="tab-matrix" className="space-y-6">
+      <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-xs">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
           <div>
-            <span className="text-xs font-bold text-indigo-600">
-              Tính năng đối chiếu trực diện
-            </span>
-            <h2 className="text-lg sm:text-xl font-extrabold text-slate-900 mt-0.5">
-              Bộ Lọc "1 Từ – 4 Ngữ Cảnh" (Context Chameleon)
+            <div className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 text-xs font-bold mb-2">
+              <span>🦎 Context Chameleon</span> · Biến hóa linh hoạt theo môi trường
+            </div>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+              Ma Trận 4 Ngữ Cảnh cho từ:{' '}
+              <span className="text-brand-600 dark:text-brand-400 underline decoration-wavy decoration-brand-400/60">
+                {w.word}
+              </span>
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 mt-1 max-w-3xl">
-              Cùng 1 từ vựng nhưng khi bước vào bài thi IELTS, đề TOEIC, Email công sở hay Quán cà
-              phê sẽ đi kèm các cụm (Chunks) và sắc thái câu hoàn toàn khác nhau.
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+              So sánh trực diện cách cùng một từ gốc chuyển đổi Collocation, sắc thái trang trọng
+              (Register) và cấu trúc câu trong 4 bối cảnh thực tế.
             </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <label htmlFor="matrix-word-select" className="text-xs font-semibold text-slate-600">
-              Chọn từ đối chiếu:
-            </label>
-            <select
-              id="matrix-word-select"
-              value={item.id}
-              onChange={(e) => onSelectWordId(e.target.value)}
-              className="bg-indigo-50 border border-indigo-200 text-indigo-950 font-bold text-xs sm:text-sm rounded-lg px-3.5 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleSpeakAll}
+              className="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-xs whitespace-nowrap"
             >
-              {vocabList.map((w) => (
-                <option key={w.id} value={w.id}>
-                  {w.word} ({w.pos}) — {w.coreMeaning.slice(0, 38)}...
-                </option>
-              ))}
-            </select>
+              🔊 Nghe lần lượt 4 ngữ cảnh
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Matrix Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {(Object.keys(item.contexts) as ContextDomain[]).map((key) => {
-          const data = item.contexts[key];
-          const st = MATRIX_STYLES[key];
-          const subTopic = data.badge.split('·')[1]?.trim() || data.badge;
-
-          return (
-            <div
-              key={key}
-              className={`bg-white rounded-xl border ${st.border} overflow-hidden flex flex-col justify-between`}
-            >
-              <div>
-                <div
-                  className={`${st.headerBg} px-4 py-3 border-b ${st.border} flex items-center justify-between gap-2`}
-                >
-                  <span className="text-xs font-extrabold text-slate-900">{st.title}</span>
-                  <span className={`text-xs font-semibold ${st.accentText}`}>{subTopic}</span>
-                </div>
-                <div className="p-4 space-y-3">
-                  <div>
-                    <div className="text-xs font-semibold text-slate-500">
-                      Tầng 2 · Cụm từ (Chunk / Collocation)
-                    </div>
-                    <div className="flex items-center justify-between gap-2 mt-1">
-                      <p className="text-sm font-extrabold text-indigo-950">{data.chunk}</p>
-                      <button
-                        type="button"
-                        onClick={() => onSpeak(data.chunk.split('/')[0].trim(), 'en-US')}
-                        className="text-xs text-indigo-600 font-semibold hover:underline shrink-0 flex items-center gap-1 whitespace-nowrap"
-                      >
-                        <Volume2 className="w-3.5 h-3.5" />
-                        Nghe
-                      </button>
-                    </div>
-                    <p className="text-xs text-slate-600 mt-0.5">Nghĩa: {data.chunkMeaning}</p>
+        {/* 2x2 Matrix Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-6">
+          {MATRIX_CTX_ORDER.map((item) => {
+            const c = w.contexts[item.key];
+            return (
+              <div
+                key={item.key}
+                className="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex flex-col justify-between gap-4"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">
+                      {item.icon} {item.title}
+                    </h3>
+                    <button
+                      type="button"
+                      onClick={() => onSpeak(c.sentence, 'en-US')}
+                      className="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-300 text-xs font-bold hover:bg-brand-100 whitespace-nowrap"
+                    >
+                      🔊 Nghe
+                    </button>
                   </div>
-
-                  <div className="pt-3 border-t border-slate-100">
-                    <div className="text-xs font-semibold text-slate-500">
-                      Tầng 3 · Câu áp dụng hoàn chỉnh
+                  {/* Formality Meter */}
+                  <div className="space-y-1">
+                    <div className="flex justify-between text-[11px] text-slate-500">
+                      <span>
+                        Sắc thái: <strong>{c.register}</strong>
+                      </span>
+                      <span>Độ trang trọng: {item.formality}</span>
                     </div>
-                    <p className="text-sm font-semibold text-slate-900 mt-1 leading-relaxed">
-                      "{data.sentenceEn}"
+                    <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className={`${item.barColor} h-full rounded-full`}
+                        style={{ width: item.formality }}
+                      />
+                    </div>
+                  </div>
+                  {/* Chunk Box */}
+                  <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                    <div className="text-[10px] font-bold uppercase text-slate-400">
+                      Cụm Collocation chuẩn
+                    </div>
+                    <div className="font-extrabold text-sm text-brand-600 dark:text-brand-400 mt-0.5">
+                      {c.chunk}
+                    </div>
+                    <div className="text-xs text-slate-500 dark:text-slate-400">{c.chunkVi}</div>
+                  </div>
+                  {/* Full Sentence */}
+                  <div className="space-y-1">
+                    <p className="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">
+                      “{c.sentence}”
                     </p>
-                    <p className="text-xs text-slate-500 mt-1">{data.sentenceVi}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 italic">
+                      {c.sentenceVi}
+                    </p>
                   </div>
                 </div>
-              </div>
-
-              <div className="px-4 py-3 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-                <span className="text-slate-600 leading-snug">
-                  <strong className="text-slate-700">Ghi chú:</strong> {data.grammarNote}
-                </span>
-                <div className="flex items-center gap-3 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => onSpeak(data.sentenceEn, 'en-US')}
-                    className="text-indigo-600 font-semibold hover:underline flex items-center gap-1 whitespace-nowrap"
-                  >
-                    <Volume2 className="w-3.5 h-3.5" />
-                    Đọc câu
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => onCopy(data.sentenceEn, 'câu ngữ cảnh')}
-                    className="text-slate-600 font-semibold hover:text-slate-900 flex items-center gap-1 whitespace-nowrap"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    Copy
-                  </button>
+                <div className="text-[11px] text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-200/70 dark:border-slate-700/70">
+                  💡 <strong>Ghi chú ứng dụng:</strong> {c.note}
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+
+        {/* Summary Comparison Table Across All Words */}
+        <div className="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+          <h3 className="text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">
+            Bảng tổng hợp nhanh Collocation {words.length} từ cốt lõi theo 4 ngữ cảnh
+          </h3>
+          <div className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+            <table className="w-full text-left border-collapse text-xs sm:text-sm">
+              <thead>
+                <tr className="bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 font-bold">
+                  <th className="p-3 border-b border-slate-200 dark:border-slate-700">Từ gốc</th>
+                  <th className="p-3 border-b border-slate-200 dark:border-slate-700">
+                    💼 TOEIC Thương mại
+                  </th>
+                  <th className="p-3 border-b border-slate-200 dark:border-slate-700">
+                    🎓 IELTS Academic
+                  </th>
+                  <th className="p-3 border-b border-slate-200 dark:border-slate-700">
+                    🏢 Giao tiếp Công sở
+                  </th>
+                  <th className="p-3 border-b border-slate-200 dark:border-slate-700">
+                    ☕ Đời thường
+                  </th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                {words.map((item) => (
+                  <tr
+                    key={item.id}
+                    onClick={() => onSelectWord(item.id)}
+                    className={`hover:bg-slate-50 dark:hover:bg-slate-800/50 transition cursor-pointer ${
+                      item.id === w.id
+                        ? 'bg-brand-50/70 dark:bg-brand-950/30 font-semibold'
+                        : ''
+                    }`}
+                  >
+                    <td className="p-3 font-extrabold text-brand-600 dark:text-brand-400 whitespace-nowrap">
+                      {item.word}
+                    </td>
+                    <td className="p-3 text-slate-700 dark:text-slate-300">
+                      {item.contexts.toeic.chunk}
+                    </td>
+                    <td className="p-3 text-slate-700 dark:text-slate-300">
+                      {item.contexts.ielts.chunk}
+                    </td>
+                    <td className="p-3 text-slate-700 dark:text-slate-300">
+                      {item.contexts.workplace.chunk}
+                    </td>
+                    <td className="p-3 text-slate-700 dark:text-slate-300">
+                      {item.contexts.daily.chunk}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
       </div>
     </section>
   );

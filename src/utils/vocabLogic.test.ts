@@ -1,85 +1,92 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { INITIAL_VOCAB_DATA, INITIAL_PHRASEBOOK_DATA } from '../data/vocabData';
+import { DEFAULT_WORDS, DEFAULT_PHRASEBOOK } from '../data/vocabData';
 import {
   filterVocabItems,
   computeSrsStats,
+  applySm2Grade,
   checkStep1Answer,
   checkStep2ChunkOrder,
-  evaluateSentenceLocally,
+  gradeSentenceLocally,
   filterPhrasebookItems,
+  createCustomWordEntry,
 } from './vocabLogic';
 
-test('filterVocabItems filters by persona, SRS status, and search query', () => {
-  const allItems = filterVocabItems(INITIAL_VOCAB_DATA, {
-    persona: 'all',
+test('filterVocabItems filters by SRS status and search query', () => {
+  const allItems = filterVocabItems(DEFAULT_WORDS, {
     srsFilter: 'all',
     searchQuery: '',
   });
   assert.equal(allItems.length, 10);
 
-  const dueOnly = filterVocabItems(INITIAL_VOCAB_DATA, {
-    persona: 'all',
-    srsFilter: 'due',
+  const reviewOnly = filterVocabItems(DEFAULT_WORDS, {
+    srsFilter: 'review',
     searchQuery: '',
   });
-  assert.equal(dueOnly.length, 4);
+  assert.equal(reviewOnly.length, 4);
 
-  const searchSchedule = filterVocabItems(INITIAL_VOCAB_DATA, {
-    persona: 'all',
+  const searchTimeline = filterVocabItems(DEFAULT_WORDS, {
     srsFilter: 'all',
-    searchQuery: 'accommodate your schedule',
+    searchQuery: 'accommodate your timeline',
   });
-  assert.equal(searchSchedule.length, 1);
-  assert.equal(searchSchedule[0].id, 'accommodate');
+  assert.equal(searchTimeline.length, 1);
+  assert.equal(searchTimeline[0].id, 'accommodate');
 });
 
-test('computeSrsStats calculates due, mastered, and percentage accurately', () => {
-  const stats = computeSrsStats(INITIAL_VOCAB_DATA);
-  assert.equal(stats.totalCount, 10);
-  assert.equal(stats.dueCount, 4);
+test('computeSrsStats and applySm2Grade compute SM-2 values accurately', () => {
+  const stats = computeSrsStats(DEFAULT_WORDS);
+  assert.equal(stats.reviewCount, 4);
+  assert.equal(stats.learningCount, 3);
   assert.equal(stats.masteredCount, 3);
-  assert.equal(stats.masteryPercentage, 30);
+
+  const updated = applySm2Grade(DEFAULT_WORDS[0], 'mastered', '7 ngày');
+  assert.equal(updated.srsStatus, 'mastered');
+  assert.equal(updated.intervalText, '7 ngày');
+  assert.equal(updated.ef, 2.65);
 });
 
-test('checkStep1Answer and checkStep2ChunkOrder validate active recall steps', () => {
-  const accommodate = INITIAL_VOCAB_DATA[0];
+test('checkStep1Answer, checkStep2ChunkOrder, and gradeSentenceLocally validate active recall', () => {
+  const accommodate = DEFAULT_WORDS[0];
   assert.equal(checkStep1Answer(accommodate, 'accommodate'), true);
-  assert.equal(checkStep1Answer(accommodate, 'accumulate'), false);
+  assert.equal(checkStep1Answer(accommodate, 'mitigate'), false);
 
   assert.equal(
-    checkStep2ChunkOrder(
-      ['to', 'accommodate', 'your', 'schedule'],
-      ['to', 'accommodate', 'your', 'schedule']
-    ),
+    checkStep2ChunkOrder(accommodate.chunkPuzzle.targetChunk, [
+      'accommodate',
+      'your',
+      'timeline',
+      'for',
+      'the',
+      'launch',
+    ]),
     true
   );
-  assert.equal(
-    checkStep2ChunkOrder(
-      ['to', 'accommodate', 'your', 'schedule'],
-      ['accommodate', 'to', 'your', 'schedule']
-    ),
-    false
-  );
-});
 
-test('evaluateSentenceLocally scores full collocation sentence at 100/100', () => {
-  const accommodate = INITIAL_VOCAB_DATA[0];
-  const res = evaluateSentenceLocally(
+  const grade = gradeSentenceLocally(
     accommodate,
-    'Please let me know if we need to move the meeting to accommodate your schedule.',
-    'office'
+    "We will do our best to accommodate your team's request regarding accommodate your timeline / schedule."
   );
-  assert.equal(res.score, 100);
-  assert.equal(res.hasWord, true);
-  assert.equal(res.hasChunk, true);
-  assert.equal(res.modeLabel, 'Email/Họp Công sở');
+  assert.ok(grade);
+  assert.equal(grade.hasTargetWord, true);
+  assert.ok(grade.score >= 8.5);
 });
 
-test('filterPhrasebookItems filters by category and saved status', () => {
-  const saved = filterPhrasebookItems(INITIAL_PHRASEBOOK_DATA, 'saved');
-  assert.equal(saved.length, 2);
+test('filterPhrasebookItems and createCustomWordEntry work properly', () => {
+  const saved = filterPhrasebookItems(DEFAULT_PHRASEBOOK, 'saved');
+  assert.equal(saved.length, 3);
 
-  const negotiation = filterPhrasebookItems(INITIAL_PHRASEBOOK_DATA, 'negotiation');
-  assert.equal(negotiation.length, 2);
+  const slack = filterPhrasebookItems(DEFAULT_PHRASEBOOK, 'slack');
+  assert.equal(slack.length, 2);
+
+  const custom = createCustomWordEntry({
+    wordText: 'streamline',
+    posCefr: 'Verb|B2-C1',
+    ipa: '/ˈstriːm.laɪn/',
+    meaningVi: 'Tinh gọn quy trình',
+    chunk: 'streamline the approval workflow',
+    sentence: 'We need to streamline the approval workflow across departments.',
+  });
+  assert.equal(custom.word, 'streamline');
+  assert.equal(custom.srsStatus, 'review');
+  assert.equal(custom.contexts.workplace.chunk, 'streamline the approval workflow');
 });

@@ -1,0 +1,2754 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LexiFlow Pro — Hệ thống Học Từ Vựng 3 Tầng & Đa Ngữ Cảnh (TOEIC, IELTS & Công Sở)</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.4);
+      border-radius: 9999px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 0.6);
+    }
+    .tier-connector {
+      position: relative;
+    }
+    .tier-connector::before {
+      content: '';
+      position: absolute;
+      left: 24px;
+      top: -20px;
+      height: 20px;
+      width: 2px;
+      background: linear-gradient(to bottom, #6366f1, #a855f7);
+    }
+    @keyframes pulse-Subtle {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-Subtle 2.2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 min-h-screen flex flex-col transition-colors duration-200 selection:bg-brand-500 selection:text-white">
+
+  <!-- TOP ANNOUNCEMENT / KEYBOARD SHORTCUT BAR -->
+  <div class="bg-gradient-to-r from-brand-700 via-indigo-700 to-violet-700 text-white text-xs py-1.5 px-4 border-b border-white/10">
+    <div class="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-2">
+      <div class="flex items-center gap-2">
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-white/20 text-white">LexiFlow Pro v2.5</span>
+        <span class="text-indigo-100 hidden sm:inline">Phương pháp Học Từ Vựng 3 Tầng (Word → Collocation → Sentence) kết hợp thuật toán SRS SM-2</span>
+      </div>
+      <div class="flex items-center gap-3 text-indigo-100">
+        <span class="hidden md:inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-white/15 rounded text-[10px] font-mono">↑/↓</kbd> Chuyển từ</span>
+        <span class="hidden md:inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-white/15 rounded text-[10px] font-mono">S</kbd> Phát âm</span>
+        <span class="hidden md:inline-flex items-center gap-1"><kbd class="px-1.5 py-0.5 bg-white/15 rounded text-[10px] font-mono">/</kbd> Tìm kiếm</span>
+        <button id="btnOpenFlashcardModal" type="button" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-400/20 hover:bg-amber-400/30 text-amber-200 border border-amber-300/30 font-semibold transition">
+          <span>⚡</span> Flashcard 3D Nhanh
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN HEADER -->
+  <header class="sticky top-0 z-30 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200/80 dark:border-slate-800">
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-6 py-3 flex flex-wrap items-center justify-between gap-3">
+      
+      <!-- Brand Logo & Slogan -->
+      <div class="flex items-center gap-3">
+        <button id="btnMobileSidebar" type="button" class="lg:hidden p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800" aria-label="Mở danh sách từ">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+        </button>
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-violet-600 flex items-center justify-center text-white font-extrabold text-lg shadow-md shadow-brand-500/25">
+          LF
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-extrabold text-lg sm:text-xl tracking-tight text-slate-900 dark:text-white">LexiFlow</h1>
+            <span class="text-[11px] font-semibold px-2 py-0.5 rounded-md bg-brand-50 text-brand-700 dark:bg-brand-950/80 dark:text-brand-300 border border-brand-200/60 dark:border-brand-800">3-Tier SRS</span>
+          </div>
+          <p class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Từ đơn → Cụm Collocation → Câu hoàn chỉnh chuẩn TOEIC, IELTS & Công sở</p>
+        </div>
+      </div>
+
+      <!-- Right Controls: Track Selector, Stats, SRS Queue, Theme Toggle -->
+      <div class="flex flex-wrap items-center gap-2 sm:gap-3">
+        <!-- Learning Track Selector -->
+        <div class="flex items-center bg-slate-100 dark:bg-slate-800/90 rounded-xl p-1 border border-slate-200/70 dark:border-slate-700">
+          <label for="selectTrack" class="sr-only">Chuyển lộ trình</label>
+          <span class="text-xs font-medium text-slate-500 dark:text-slate-400 pl-2.5 pr-1 hidden xl:inline">Lộ trình:</span>
+          <select id="selectTrack" class="bg-transparent text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-100 py-1 px-2 rounded-lg focus:outline-none cursor-pointer">
+            <option value="all">🌐 Toàn diện (Tất cả mục tiêu)</option>
+            <option value="toeic">💼 TOEIC Thương mại 800+</option>
+            <option value="ielts">🎓 IELTS Academic Band 7.5+</option>
+            <option value="workplace">🏢 Giao tiếp Công sở & Email</option>
+            <option value="daily">☕ Phản xạ Đời thường</option>
+          </select>
+        </div>
+
+        <!-- Streak Pill -->
+        <div class="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-orange-50 dark:bg-orange-950/40 border border-orange-200/70 dark:border-orange-800/60 text-orange-700 dark:text-orange-300 text-xs font-bold">
+          <span>🔥</span>
+          <span>Streak: <strong id="streakCount">7</strong> ngày</span>
+        </div>
+
+        <!-- Mastery Progress Pill -->
+        <div class="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200/70 dark:border-emerald-800/60 text-emerald-700 dark:text-emerald-300 text-xs font-semibold">
+          <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+          <span>Đã thuộc: <strong id="masteredHeaderCount">3/10</strong></span>
+        </div>
+
+        <!-- SRS Review Filter Action Button -->
+        <button id="btnHeaderSrsDue" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/50 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 text-xs font-bold transition shadow-sm">
+          <span class="w-2 h-2 rounded-full bg-rose-500 animate-ping"></span>
+          <span>Cần ôn SRS (<span id="srsDueHeaderCount">4</span>)</span>
+        </button>
+
+        <!-- Add New Word Button -->
+        <button id="btnOpenAddWordModal" type="button" class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-semibold shadow-sm transition">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          <span class="hidden sm:inline">Thêm từ</span>
+        </button>
+
+        <!-- Theme Toggle -->
+        <button id="btnThemeToggle" type="button" class="p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition" aria-label="Đổi giao diện Sáng/Tối" title="Đổi giao diện Sáng / Tối">
+          <svg id="iconSun" class="w-4 h-4 hidden dark:block text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+          <svg id="iconMoon" class="w-4 h-4 block dark:hidden text-slate-700" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 5 MAIN NAVIGATION TABS -->
+    <div class="max-w-[1440px] mx-auto px-4 lg:px-6 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/60 dark:bg-slate-900/50">
+      <nav class="flex items-center gap-1 overflow-x-auto custom-scrollbar py-1.5" aria-label="Chức năng chính">
+        <button type="button" data-tab="tab-tier" class="main-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition bg-brand-600 text-white shadow-sm">
+          <span>1. Học 3 Tầng</span>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-white/20 text-white">Core → Chunk → Câu</span>
+        </button>
+        <button type="button" data-tab="tab-matrix" class="main-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800">
+          <span>2. Ma Trận 4 Ngữ Cảnh</span>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Context Chameleon</span>
+        </button>
+        <button type="button" data-tab="tab-practice" class="main-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800">
+          <span>3. Luyện Tập & AI Chấm Câu</span>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-amber-100 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300">Active Recall</span>
+        </button>
+        <button type="button" data-tab="tab-phrasebook" class="main-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800">
+          <span>4. Sổ Tay Công Sở</span>
+          <span id="savedPhraseCountBadge" class="px-1.5 py-0.5 text-[10px] rounded bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300">12 mẫu</span>
+        </button>
+        <button type="button" data-tab="tab-database" class="main-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800">
+          <span>5. Database & Kiến Trúc</span>
+          <span class="px-1.5 py-0.5 text-[10px] rounded bg-slate-200 dark:bg-slate-800 text-slate-600 dark:text-slate-400 font-mono">SQL / JSON</span>
+        </button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- MAIN WORKSPACE CONTAINER -->
+  <div class="max-w-[1440px] w-full mx-auto flex-1 flex flex-col lg:flex-row gap-6 px-4 lg:px-6 py-6 relative">
+
+    <!-- LEFT SIDEBAR: VOCABULARY EXPLORER & SRS FILTER -->
+    <aside id="vocabSidebar" class="w-full lg:w-80 xl:w-96 flex-shrink-0 flex flex-col bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
+      <!-- Search & Context Filter Header -->
+      <div class="p-4 border-b border-slate-100 dark:border-slate-800 space-y-3">
+        <div class="flex items-center justify-between">
+          <h2 class="text-xs font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400">Danh mục chủ điểm từ vựng</h2>
+          <button id="btnResetProgress" type="button" class="text-[11px] font-medium text-slate-400 hover:text-brand-600 dark:hover:text-brand-400 transition" title="Khôi phục trạng thái mặc định">Khôi phục mặc định</button>
+        </div>
+
+        <!-- Search Input -->
+        <div class="relative">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input id="inputSearchWord" type="text" placeholder="Tìm từ, cụm từ, nghĩa tiếng Việt..." class="w-full pl-9 pr-8 py-2 text-xs sm:text-sm rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:bg-white dark:focus:bg-slate-800 transition" />
+          <button id="btnClearSearch" type="button" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs font-bold">✕</button>
+        </div>
+
+        <!-- Context Space Pills -->
+        <div class="flex flex-wrap gap-1.5" id="contextFilterGroup">
+          <button type="button" data-ctx="all" class="ctx-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition">Tất cả (<span id="countAllWords">10</span>)</button>
+          <button type="button" data-ctx="toeic" class="ctx-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">TOEIC</button>
+          <button type="button" data-ctx="ielts" class="ctx-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">IELTS</button>
+          <button type="button" data-ctx="workplace" class="ctx-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">Công sở</button>
+          <button type="button" data-ctx="daily" class="ctx-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition">Đời thường</button>
+        </div>
+
+        <!-- SRS Status Filter & Audio Voice Speed -->
+        <div class="flex items-center justify-between gap-2 pt-1">
+          <select id="selectSrsFilter" aria-label="Lọc trạng thái SRS" class="flex-1 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-brand-500">
+            <option value="all">Mọi trạng thái SRS</option>
+            <option value="review">🔴 Cần ôn (Due)</option>
+            <option value="learning">🟡 Đang học (Learning)</option>
+            <option value="mastered">🟢 Đã thuộc (Mastered)</option>
+          </select>
+          <button id="btnSpeechRate" type="button" class="px-2.5 py-1.5 rounded-lg text-xs font-mono font-semibold bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-brand-400 transition" title="Tốc độ phát âm chuẩn / chậm">
+            🔊 1.0x
+          </button>
+        </div>
+      </div>
+
+      <!-- SRS Overview Mini Progress Bar -->
+      <div class="px-4 py-2.5 bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex items-center justify-between text-[11px] font-semibold mb-1.5">
+          <span class="text-rose-600 dark:text-rose-400">Cần ôn: <strong id="barCountReview">4</strong></span>
+          <span class="text-amber-600 dark:text-amber-400">Đang học: <strong id="barCountLearning">3</strong></span>
+          <span class="text-emerald-600 dark:text-emerald-400">Đã thuộc: <strong id="barCountMastered">3</strong></span>
+        </div>
+        <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden flex">
+          <div id="barSegReview" class="bg-rose-500 h-full transition-all duration-300" style="width: 40%"></div>
+          <div id="barSegLearning" class="bg-amber-400 h-full transition-all duration-300" style="width: 30%"></div>
+          <div id="barSegMastered" class="bg-emerald-500 h-full transition-all duration-300" style="width: 30%"></div>
+        </div>
+      </div>
+
+      <!-- Word List Container -->
+      <div id="wordListContainer" class="flex-1 overflow-y-auto custom-scrollbar divide-y divide-slate-100 dark:divide-slate-800/70 max-h-[420px] lg:max-h-[680px]">
+        <!-- Populated dynamically via JS -->
+      </div>
+    </aside>
+
+    <!-- RIGHT MAIN CONTENT AREA -->
+    <main class="flex-1 min-w-0 flex flex-col gap-6">
+
+      <!-- ==========================================
+           TAB 1: HỌC 3 TẦNG (3-TIER LEARNING VIEW)
+           ========================================== -->
+      <section id="tab-tier" class="tab-panel space-y-6">
+        
+        <!-- TIER 1: CORE WORD CARD -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="bg-gradient-to-r from-brand-600/10 via-indigo-500/5 to-transparent dark:from-brand-500/15 px-6 py-3 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider bg-brand-600 text-white">Tầng 1 · Core Word</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Hiểu bản chất, phát âm chuẩn IPA & tránh bẫy ngữ cảnh</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnPrevWord" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">← Từ trước</button>
+              <span id="wordIndexIndicator" class="text-xs font-mono font-bold text-slate-500">1 / 10</span>
+              <button id="btnNextWord" type="button" class="px-2.5 py-1 rounded-lg text-xs font-semibold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Từ tiếp →</button>
+            </div>
+          </div>
+
+          <div class="p-6 space-y-5">
+            <!-- Word Header, IPA, Audio & Badges -->
+            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+              <div class="space-y-2">
+                <div class="flex flex-wrap items-center gap-2.5">
+                  <h2 id="t1WordTitle" class="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">accommodate</h2>
+                  <span id="t1PosBadge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-indigo-50 text-indigo-700 dark:bg-indigo-950/80 dark:text-indigo-300 border border-indigo-200/60 dark:border-indigo-800">Verb</span>
+                  <span id="t1CefrBadge" class="px-2.5 py-1 rounded-lg text-xs font-extrabold bg-violet-100 text-violet-800 dark:bg-violet-950/80 dark:text-violet-300">CEFR B2-C1</span>
+                  <span id="t1SrsBadge" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300">Cần ôn</span>
+                </div>
+
+                <!-- IPA & US/UK Pronunciation Buttons -->
+                <div class="flex flex-wrap items-center gap-3 pt-1">
+                  <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700">
+                    <span class="text-xs font-bold text-slate-500">🇺🇸 US</span>
+                    <span id="t1IpaUs" class="font-mono text-sm text-slate-800 dark:text-slate-200">/əˈkɑː.mə.deɪt/</span>
+                    <button id="btnSpeakWordUs" type="button" class="p-1 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition" title="Nghe phát âm Anh-Mỹ">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                    </button>
+                  </div>
+                  <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 border border-slate-200/80 dark:border-slate-700">
+                    <span class="text-xs font-bold text-slate-500">🇬🇧 UK</span>
+                    <span id="t1IpaUk" class="font-mono text-sm text-slate-800 dark:text-slate-200">/əˈkɒm.ə.deɪt/</span>
+                    <button id="btnSpeakWordUk" type="button" class="p-1 rounded-lg bg-slate-700 text-white hover:bg-slate-800 transition" title="Nghe phát âm Anh-Anh">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"/></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- SM-2 Active Self-Grading Panel -->
+              <div class="bg-slate-50 dark:bg-slate-800/70 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col gap-2 min-w-[260px]">
+                <div class="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+                  <span>ĐÁNH GIÁ MỨC ĐỘ NHỚ (SRS SM-2)</span>
+                  <span id="t1NextReviewText" class="font-mono text-brand-600 dark:text-brand-400">EF: 2.5</span>
+                </div>
+                <div class="grid grid-cols-4 gap-1.5">
+                  <button type="button" data-srs-grade="review" data-interval="10 phút" class="srs-grade-btn py-1.5 px-2 rounded-xl border border-rose-200 dark:border-rose-800 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 text-center transition">
+                    <div class="text-xs font-extrabold">Quên</div>
+                    <div class="text-[10px] opacity-80">10p</div>
+                  </button>
+                  <button type="button" data-srs-grade="learning" data-interval="1 ngày" class="srs-grade-btn py-1.5 px-2 rounded-xl border border-amber-200 dark:border-amber-800 bg-amber-50 hover:bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 text-center transition">
+                    <div class="text-xs font-extrabold">Khó</div>
+                    <div class="text-[10px] opacity-80">1 ngày</div>
+                  </button>
+                  <button type="button" data-srs-grade="learning" data-interval="3 ngày" class="srs-grade-btn py-1.5 px-2 rounded-xl border border-sky-200 dark:border-sky-800 bg-sky-50 hover:bg-sky-100 dark:bg-sky-950/60 text-sky-700 dark:text-sky-300 text-center transition">
+                    <div class="text-xs font-extrabold">Tốt</div>
+                    <div class="text-[10px] opacity-80">3 ngày</div>
+                  </button>
+                  <button type="button" data-srs-grade="mastered" data-interval="7 ngày" class="srs-grade-btn py-1.5 px-2 rounded-xl border border-emerald-200 dark:border-emerald-800 bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 text-center transition">
+                    <div class="text-xs font-extrabold">Đã thuộc</div>
+                    <div class="text-[10px] opacity-80">7 ngày</div>
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Meaning & Nuance Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200/70 dark:border-slate-800">
+                <div class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-1">Nghĩa cốt lõi & Bản chất</div>
+                <p id="t1MeaningVi" class="text-base font-bold text-slate-900 dark:text-white mb-1"></p>
+                <p id="t1MeaningEn" class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed"></p>
+              </div>
+              <div class="p-4 rounded-xl bg-amber-50/70 dark:bg-amber-950/30 border border-amber-200/80 dark:border-amber-800/60">
+                <div class="flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-amber-800 dark:text-amber-300 mb-1">
+                  <span>💡</span> Mẹo ghi nhớ & Bẫy thường gặp (Exam Trap)
+                </div>
+                <p id="t1TipTrap" class="text-xs sm:text-sm text-amber-950 dark:text-amber-200 leading-relaxed"></p>
+              </div>
+            </div>
+
+            <!-- Word Family & Synonyms Bar -->
+            <div class="flex flex-wrap items-center gap-2 pt-1 text-xs">
+              <span class="font-bold text-slate-500 dark:text-slate-400">Họ từ & Đồng nghĩa:</span>
+              <div id="t1WordFamilyContainer" class="flex flex-wrap gap-1.5"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- TIER 2: CHUNKS & COLLOCATIONS CARD -->
+        <div class="tier-connector bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="bg-gradient-to-r from-violet-600/10 via-purple-500/5 to-transparent dark:from-violet-500/15 px-6 py-3 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider bg-violet-600 text-white">Tầng 2 · Chunks & Collocations</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Học theo cụm cố định để nói/viết tự nhiên như người bản xứ, không ghép từ逐chữ</span>
+            </div>
+            <span class="text-xs font-semibold text-violet-600 dark:text-violet-400">4 ngữ cảnh chuẩn hóa</span>
+          </div>
+
+          <div id="t2ChunksGrid" class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+        <!-- TIER 3: FULL SENTENCES & SHADOWING CARD -->
+        <div class="tier-connector bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div class="bg-gradient-to-r from-emerald-600/10 via-teal-500/5 to-transparent dark:from-emerald-500/15 px-6 py-3 border-b border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider bg-emerald-600 text-white">Tầng 3 · Full Sentence & Shadowing</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">Đặt cụm từ vào câu hoàn chỉnh, phân tích cấu trúc ăn điểm và luyện nói đuổi (Shadowing)</span>
+            </div>
+            <button id="btnGoToPracticeFromTier3" type="button" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition shadow-sm">
+              <span>✍️</span> Luyện đặt câu với từ này →
+            </button>
+          </div>
+
+          <div id="t3SentencesList" class="p-6 space-y-4">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ==========================================
+           TAB 2: MA TRẬN 4 NGỮ CẢNH (CONTEXT CHAMELEON)
+           ========================================== -->
+      <section id="tab-matrix" class="tab-panel hidden space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-sm">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-slate-100 dark:border-slate-800">
+            <div>
+              <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-300 text-xs font-bold mb-2">
+                <span>🦎 Context Chameleon</span> · Biến hóa linh hoạt theo môi trường
+              </div>
+              <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">
+                Ma Trận 4 Ngữ Cảnh cho từ: <span id="matrixWordHighlight" class="text-brand-600 dark:text-brand-400 underline decoration-wavy decoration-brand-400/60">accommodate</span>
+              </h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">
+                So sánh trực diện cách cùng một từ gốc chuyển đổi Collocation, sắc thái trang trọng (Register) và cấu trúc câu trong 4 bối cảnh thực tế.
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnSpeakAllMatrix" type="button" class="px-3.5 py-2 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition shadow-sm">
+                🔊 Nghe lần lượt 4 ngữ cảnh
+              </button>
+            </div>
+          </div>
+
+          <!-- 2x2 Matrix Grid -->
+          <div id="matrixFourGrid" class="grid grid-cols-1 md:grid-cols-2 gap-5 pt-6">
+            <!-- Populated via JS -->
+          </div>
+
+          <!-- Summary Comparison Table Across All 10 Words -->
+          <div class="mt-8 pt-6 border-t border-slate-100 dark:border-slate-800">
+            <h3 class="text-sm font-extrabold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-4">Bảng tổng hợp nhanh Collocation 10 từ cốt lõi theo 4 ngữ cảnh</h3>
+            <div class="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-800">
+              <table class="w-full text-left border-collapse text-xs sm:text-sm">
+                <thead>
+                  <tr class="bg-slate-100 dark:bg-slate-800/90 text-slate-700 dark:text-slate-200 font-bold">
+                    <th class="p-3 border-b border-slate-200 dark:border-slate-700">Từ gốc</th>
+                    <th class="p-3 border-b border-slate-200 dark:border-slate-700">💼 TOEIC Thương mại</th>
+                    <th class="p-3 border-b border-slate-200 dark:border-slate-700">🎓 IELTS Academic</th>
+                    <th class="p-3 border-b border-slate-200 dark:border-slate-700">🏢 Giao tiếp Công sở</th>
+                    <th class="p-3 border-b border-slate-200 dark:border-slate-700">☕ Đời thường</th>
+                  </tr>
+                </thead>
+                <tbody id="matrixSummaryTableBody" class="divide-y divide-slate-100 dark:divide-slate-800">
+                  <!-- Populated via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 3: LUYỆN TẬP & AI CHẤM CÂU (ACTIVE RECALL ROOM)
+           ========================================== -->
+      <section id="tab-practice" class="tab-panel hidden space-y-6">
+        
+        <!-- Active Recall Header Banner -->
+        <div class="bg-gradient-to-r from-brand-700 via-indigo-700 to-violet-700 rounded-2xl p-6 text-white shadow-md flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white/20 text-white text-xs font-bold mb-2">
+              🧠 Phòng Luyện Tập Chủ Động 3 Bước · Active Recall Room
+            </div>
+            <h2 class="text-xl sm:text-2xl font-extrabold">Đang luyện tập: <span id="practiceTargetWord" class="underline decoration-amber-300">accommodate</span></h2>
+            <p class="text-xs sm:text-sm text-indigo-100 mt-1">Hoàn thành cả 3 bước (Nhận diện từ → Ghép cụm Collocation → Đặt câu thực tế) để chuyển từ sang trạng thái <strong>Đã thuộc</strong>.</p>
+          </div>
+          <div class="flex items-center gap-3 bg-white/10 backdrop-blur-sm px-4 py-3 rounded-xl border border-white/15">
+            <div class="text-center px-2">
+              <div class="text-[11px] text-indigo-200 uppercase font-semibold">Điểm phiên này</div>
+              <div id="practiceSessionScore" class="text-2xl font-extrabold text-amber-300">0 XP</div>
+            </div>
+            <button id="btnPracticeListenWord" type="button" class="px-3 py-2 rounded-xl bg-white text-brand-700 font-bold text-xs hover:bg-indigo-50 transition">
+              🔊 Nghe từ
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP 1: MULTIPLE CHOICE RECOGNITION -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-brand-600 text-white font-extrabold text-xs flex items-center justify-center">1</span>
+              <h3 class="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">Bước 1 · Nhận diện Từ trong Ngữ cảnh</h3>
+            </div>
+            <span id="step1StatusBadge" class="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400">Chưa hoàn thành</span>
+          </div>
+          <p id="step1PromptText" class="text-sm sm:text-base font-medium text-slate-800 dark:text-slate-200 bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl border border-slate-200/70 dark:border-slate-700"></p>
+          <div id="step1OptionsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <!-- Populated via JS -->
+          </div>
+          <div id="step1FeedbackBox" class="hidden p-4 rounded-xl text-xs sm:text-sm font-medium"></div>
+        </div>
+
+        <!-- STEP 2: COLLOCATION CHUNKING PUZZLE -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-violet-600 text-white font-extrabold text-xs flex items-center justify-center">2</span>
+              <div>
+                <h3 class="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">Bước 2 · Ghép Cụm Collocation (Chunking)</h3>
+                <p id="step2TargetMeaning" class="text-xs text-slate-500 dark:text-slate-400"></p>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              <button id="btnStep2SpeakChunk" type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 transition">🔊 Nghe cụm</button>
+              <button id="btnStep2Reset" type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 text-slate-700 dark:text-slate-300 transition">↺ Xếp lại</button>
+              <button id="btnStep2Check" type="button" class="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-violet-600 hover:bg-violet-700 text-white transition shadow-sm">✓ Kiểm tra Cụm</button>
+            </div>
+          </div>
+
+          <!-- Selected Answer Slots -->
+          <div class="min-h-[56px] p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border-2 border-dashed border-slate-300 dark:border-slate-700 flex flex-wrap items-center gap-2" id="step2SelectedZone">
+            <span class="text-xs text-slate-400 select-none">Nhấn vào các mảnh từ bên dưới theo đúng thứ tự để tạo cụm Collocation chuẩn...</span>
+          </div>
+
+          <!-- Available Shuffled Word Chips -->
+          <div class="flex flex-wrap gap-2 pt-1" id="step2AvailableZone">
+            <!-- Populated via JS -->
+          </div>
+          <div id="step2FeedbackBox" class="hidden p-4 rounded-xl text-xs sm:text-sm font-medium"></div>
+        </div>
+
+        <!-- STEP 3: SENTENCE WRITING & SMART AI RUBRIC GRADER -->
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-sm space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
+              <span class="w-7 h-7 rounded-lg bg-emerald-600 text-white font-extrabold text-xs flex items-center justify-center">3</span>
+              <div>
+                <h3 class="font-extrabold text-base sm:text-lg text-slate-900 dark:text-white">Bước 3 · Đặt Câu & AI Chữa Chi Tiết</h3>
+                <p class="text-xs text-slate-500 dark:text-slate-400">Viết 1 câu hoàn chỉnh sử dụng từ/cụm từ đang học. Hệ thống sẽ chấm điểm Collocation, Ngữ pháp & gợi ý nâng cấp câu chuẩn C1.</p>
+              </div>
+            </div>
+            <button id="btnFillSentenceTemplate" type="button" class="px-3 py-1.5 rounded-xl text-xs font-bold bg-indigo-50 dark:bg-indigo-950/70 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 hover:bg-indigo-100 transition">
+              ✨ Điền khung câu gợi ý
+            </button>
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              <span>Cụm mục tiêu gợi ý:</span>
+              <span id="step3SuggestedChunks" class="flex flex-wrap gap-1.5"></span>
+            </div>
+            <textarea id="inputUserSentence" rows="3" placeholder="Ví dụ: We need to accommodate the client's special request before Friday's launch..." class="w-full p-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-500 transition"></textarea>
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span id="sentenceWordCount" class="text-xs text-slate-400 font-mono">0 từ</span>
+              <div class="flex items-center gap-2">
+                <button id="btnClearSentence" type="button" class="px-3 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition">Xóa trắng</button>
+                <button id="btnGradeSentence" type="button" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-bold bg-gradient-to-r from-brand-600 to-violet-600 hover:from-brand-700 hover:to-violet-700 text-white shadow-md shadow-brand-500/20 transition">
+                  🤖 Chấm điểm & Nâng cấp câu
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- AI Grading Report Card -->
+          <div id="aiFeedbackResultCard" class="hidden rounded-2xl border border-indigo-200 dark:border-indigo-800/80 bg-indigo-50/40 dark:bg-indigo-950/20 p-5 space-y-4">
+            <!-- Populated dynamically via JS -->
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ==========================================
+           TAB 4: SỔ TAY CÔNG SỞ (WORKPLACE PHRASEBOOK)
+           ========================================== -->
+      <section id="tab-phrasebook" class="tab-panel hidden space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-sm space-y-5">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-300 text-xs font-bold mb-1.5">
+                💼 Quick Workplace Phrasebook
+              </div>
+              <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Sổ Tay Mẫu Câu Công Sở Thực Chiến</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Các câu mẫu ứng dụng trực tiếp bộ từ vựng cốt lõi vào Email, chat Slack/Teams, họp hành và đàm phán deadline. Nhấn 1 chạm để nghe hoặc Copy.</p>
+            </div>
+            <!-- Search Phrasebook -->
+            <div class="w-full md:w-64">
+              <input id="inputSearchPhrasebook" type="text" placeholder="Tìm tình huống, mẫu câu..." class="w-full px-3.5 py-2 rounded-xl text-xs sm:text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500" />
+            </div>
+          </div>
+
+          <!-- Category Filter Pills -->
+          <div class="flex flex-wrap gap-2" id="phrasebookCategoryGroup">
+            <button type="button" data-pb-cat="all" class="pb-cat-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-600 text-white transition">Tất cả tình huống</button>
+            <button type="button" data-pb-cat="email" class="pb-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition">📧 Email & Báo cáo</button>
+            <button type="button" data-pb-cat="slack" class="pb-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition">💬 Nhắn tin Slack / Teams</button>
+            <button type="button" data-pb-cat="meeting" class="pb-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition">🎙️ Họp hành & Thuyết trình</button>
+            <button type="button" data-pb-cat="deadline" class="pb-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition">⏳ Đàm phán & Deadline</button>
+            <button type="button" data-pb-cat="saved" class="pb-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800 transition">★ Đã lưu (<span id="pbSavedTabCount">3</span>)</button>
+          </div>
+
+          <!-- Phrasebook Cards Grid -->
+          <div id="phrasebookGrid" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           TAB 5: DATABASE & KIẾN TRÚC (TECHNICAL SPEC)
+           ========================================== -->
+      <section id="tab-database" class="tab-panel hidden space-y-6">
+        <div class="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 shadow-sm space-y-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+            <div>
+              <div class="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-mono font-bold mb-1.5">
+                🗄️ System Architecture & PostgreSQL Schema
+              </div>
+              <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white">Thiết kế Cơ sở dữ liệu & JSON API</h2>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">Mô hình dữ liệu quan hệ 4 bảng chuẩn hóa phục vụ học từ vựng 3 tầng, đa ngữ cảnh và thuật toán lặp lại ngắt quãng SM-2.</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="btnCopySqlSchema" type="button" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:opacity-90 transition">
+                📋 Copy SQL
+              </button>
+              <button id="btnCopyJsonPayload" type="button" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white transition">
+                📋 Copy JSON
+              </button>
+              <button id="btnDownloadJsonFile" type="button" class="px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 transition">
+                ⬇️ Xuất dữ liệu (.json)
+              </button>
+            </div>
+          </div>
+
+          <!-- 4 Relational Tables Visual Cards -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <div class="text-xs font-mono font-bold text-brand-600 dark:text-brand-400 mb-1">1. TABLE words</div>
+              <div class="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-2">Lưu trữ Tầng 1 (Core Word)</div>
+              <ul class="text-[11px] font-mono text-slate-500 dark:text-slate-400 space-y-1">
+                <li>• id (UUID PK)</li>
+                <li>• word_text (VARCHAR UNIQUE)</li>
+                <li>• pos, cefr_level (B2/C1)</li>
+                <li>• ipa_us, ipa_uk</li>
+                <li>• core_meaning_vi, exam_trap</li>
+              </ul>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <div class="text-xs font-mono font-bold text-violet-600 dark:text-violet-400 mb-1">2. TABLE word_chunks</div>
+              <div class="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-2">Lưu trữ Tầng 2 (Collocations)</div>
+              <ul class="text-[11px] font-mono text-slate-500 dark:text-slate-400 space-y-1">
+                <li>• id (UUID PK)</li>
+                <li>• word_id (FK → words.id)</li>
+                <li>• context_type (toeic/ielts/...)</li>
+                <li>• chunk_en, chunk_vi</li>
+                <li>• register_note</li>
+              </ul>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <div class="text-xs font-mono font-bold text-emerald-600 dark:text-emerald-400 mb-1">3. TABLE context_sentences</div>
+              <div class="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-2">Lưu trữ Tầng 3 (Full Sentences)</div>
+              <ul class="text-[11px] font-mono text-slate-500 dark:text-slate-400 space-y-1">
+                <li>• id (UUID PK)</li>
+                <li>• chunk_id (FK → word_chunks.id)</li>
+                <li>• sentence_en, sentence_vi</li>
+                <li>• grammar_highlight</li>
+                <li>• audio_url</li>
+              </ul>
+            </div>
+            <div class="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+              <div class="text-xs font-mono font-bold text-amber-600 dark:text-amber-400 mb-1">4. TABLE user_srs_progress</div>
+              <div class="text-xs font-semibold text-slate-800 dark:text-slate-200 mb-2">Tiến độ SM-2 & Lịch sử AI</div>
+              <ul class="text-[11px] font-mono text-slate-500 dark:text-slate-400 space-y-1">
+                <li>• user_id, word_id (Composite PK)</li>
+                <li>• srs_status (review/learning/...)</li>
+                <li>• easiness_factor (FLOAT 2.5)</li>
+                <li>• interval_days, next_review_at</li>
+                <li>• last_ai_sentence, ai_score</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Code Blocks: SQL DDL & Live JSON Payload -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">PostgreSQL Schema (DDL)</span>
+                <span class="text-[11px] font-mono text-slate-400">schema.sql</span>
+              </div>
+              <pre id="sqlCodeBlock" class="p-4 rounded-xl bg-slate-950 text-slate-100 font-mono text-xs overflow-x-auto leading-relaxed max-h-[420px] custom-scrollbar"></pre>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Live JSON API Response (Từ đang chọn)</span>
+                <span id="jsonCurrentWordLabel" class="text-[11px] font-mono text-brand-600 dark:text-brand-400">GET /api/v1/words/accommodate</span>
+              </div>
+              <pre id="jsonCodeBlock" class="p-4 rounded-xl bg-slate-950 text-emerald-300 font-mono text-xs overflow-x-auto leading-relaxed max-h-[420px] custom-scrollbar"></pre>
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- ==========================================
+       MODAL 1: 3D FLASHCARD QUICK SRS REVIEW
+       ========================================== -->
+  <div id="modalFlashcard" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="text-amber-500">⚡</span>
+          <h3 class="font-extrabold text-base text-slate-900 dark:text-white">Ôn tập Flashcard 3 Tầng Cấp Tốc</h3>
+        </div>
+        <button id="btnCloseFlashcardModal" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-sm">✕ Đóng</button>
+      </div>
+      <div class="p-6 space-y-5">
+        <div id="flashcardBody" class="min-h-[240px] p-6 rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/50 dark:from-slate-800 dark:to-indigo-950/30 border border-slate-200 dark:border-slate-700 flex flex-col justify-between cursor-pointer select-none transition">
+          <!-- Populated via JS -->
+        </div>
+        <div class="flex items-center justify-between gap-2">
+          <button id="btnFlashcardFlip" type="button" class="flex-1 py-2.5 rounded-xl font-bold text-xs bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 transition">🔄 Lật thẻ (Xem Collocation & Câu)</button>
+          <button id="btnFlashcardMarkMastered" type="button" class="flex-1 py-2.5 rounded-xl font-bold text-xs bg-emerald-600 hover:bg-emerald-700 text-white transition">✓ Đánh dấu Đã thuộc & Tiếp theo</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==========================================
+       MODAL 2: ADD CUSTOM WORD (3-TIER CREATOR)
+       ========================================== -->
+  <div id="modalAddWord" class="fixed inset-0 z-50 hidden bg-slate-950/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-slate-900 w-full max-w-xl rounded-2xl border border-slate-200 dark:border-slate-800 shadow-2xl overflow-hidden">
+      <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+        <h3 class="font-extrabold text-base text-slate-900 dark:text-white">➕ Thêm Chủ Điểm Từ Vựng Mới (Chuẩn 3 Tầng)</h3>
+        <button id="btnCloseAddWordModal" type="button" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 font-bold text-sm">✕ Đóng</button>
+      </div>
+      <form id="formAddWord" class="p-6 space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <div class="sm:col-span-2">
+            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Từ vựng gốc (Tầng 1) *</label>
+            <input id="newWordText" type="text" required placeholder="VD: streamline" class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Từ loại & CEFR</label>
+            <select id="newWordPos" class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+              <option value="Verb|B2-C1">Verb (B2-C1)</option>
+              <option value="Noun|B2-C1">Noun (B2-C1)</option>
+              <option value="Adjective|B2-C1">Adjective (B2-C1)</option>
+              <option value="Verb Chunk|B2">Verb Chunk (B2)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Phiên âm IPA</label>
+            <input id="newWordIpa" type="text" placeholder="VD: /ˈstriːm.laɪn/" class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono" />
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Nghĩa tiếng Việt cốt lõi *</label>
+            <input id="newWordMeaningVi" type="text" required placeholder="VD: Tinh gọn, tối ưu hóa quy trình" class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Cụm Collocation trọng tâm (Tầng 2) *</label>
+          <input id="newWordChunk" type="text" required placeholder="VD: streamline the approval workflow" class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700" />
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">Câu hoàn chỉnh ứng dụng (Tầng 3) *</label>
+          <textarea id="newWordSentence" rows="2" required placeholder="VD: Implementing this tool will streamline the approval workflow across all departments." class="w-full px-3 py-2 rounded-xl text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"></textarea>
+        </div>
+        <div class="flex items-center justify-end gap-2 pt-2">
+          <button id="btnCancelAddWord" type="button" class="px-4 py-2 rounded-xl text-xs font-semibold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">Hủy</button>
+          <button type="submit" class="px-5 py-2 rounded-xl text-xs font-bold bg-brand-600 hover:bg-brand-700 text-white shadow-sm">Lưu từ vào LexiFlow</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 pointer-events-none flex flex-col gap-2"></div>
+
+  <!-- ==========================================
+       APPLICATION LOGIC & RICH 10-WORD DATASET
+       ========================================== -->
+  <script>
+    (function() {
+      // 1. DEFAULT 10 CORE VOCABULARY WORDS (3 TIERS x 4 CONTEXTS)
+      const DEFAULT_WORDS = [
+        {
+          id: "accommodate",
+          word: "accommodate",
+          ipaUs: "/əˈkɑː.mə.deɪt/",
+          ipaUk: "/əˈkɒm.ə.deɪt/",
+          pos: "Verb",
+          cefr: "B2-C1",
+          srsStatus: "review",
+          ef: 2.5,
+          intervalText: "Hôm nay",
+          meaningVi: "Đáp ứng yêu cầu, điều chỉnh cho phù hợp, hoặc cung cấp đủ chỗ chứa.",
+          meaningEn: "To provide sufficient space for; or to adapt to / meet someone's special requests, needs, or schedule.",
+          trapTip: "Bẫy chính tả kinh điển: Có 2 chữ 'c' và 2 chữ 'm' (a-CC-o-MM-odate). Trong TOEIC Part 5/7, từ này không chỉ mang nghĩa 'chỗ ở' mà thường xuyên mang nghĩa 'đáp ứng yêu cầu khách hàng' (accommodate client requests).",
+          family: ["accommodation (n)", "accommodating (adj)", "meet / fulfill (syn)"],
+          contexts: {
+            toeic: {
+              label: "TOEIC Thương mại",
+              badgeColor: "indigo",
+              chunk: "accommodate special dietary requests",
+              chunkVi: "đáp ứng các yêu cầu ăn uống đặc biệt",
+              register: "Trang trọng · Dịch vụ & Khách sạn",
+              sentence: "The banquet hall can accommodate up to 300 guests and accommodate special dietary requests upon prior notice.",
+              sentenceVi: "Sảnh tiệc có thể chứa tới 300 khách và đáp ứng các yêu cầu ăn uống đặc biệt khi được báo trước.",
+              note: "Hay xuất hiện trong email đặt phòng hội nghị, nhà hàng (TOEIC Reading Part 7)."
+            },
+            ielts: {
+              label: "IELTS Academic (Band 7.5+)",
+              badgeColor: "violet",
+              chunk: "accommodate the rapid influx of urban migrants",
+              chunkVi: "đáp ứng làn sóng người nhập cư đô thị tăng nhanh",
+              register: "Học thuật · Urbanization & Policy",
+              sentence: "Municipal infrastructure must be upgraded to accommodate the rapid influx of urban migrants over the next decade.",
+              sentenceVi: "Cơ sở hạ tầng đô thị phải được nâng cấp để đáp ứng làn sóng người nhập cư đô thị tăng nhanh trong thập kỷ tới.",
+              note: "Cấu trúc 'be upgraded to accommodate + Noun phrase' giúp ăn điểm Lexical Resource trong Writing Task 2."
+            },
+            workplace: {
+              label: "Giao tiếp Công sở",
+              badgeColor: "emerald",
+              chunk: "accommodate your timeline / schedule",
+              chunkVi: "linh hoạt điều chỉnh theo lịch trình của bạn",
+              register: "Lịch sự, hợp tác · Email & Họp",
+              sentence: "We have adjusted our sprint priorities to accommodate your timeline for the Q4 product launch.",
+              sentenceVi: "Chúng tôi đã điều chỉnh thứ tự ưu tiên của sprint để đáp ứng khung thời gian ra mắt sản phẩm Quý 4 của bạn.",
+              note: "Dùng khi muốn thể hiện thiện chí hỗ trợ khách hàng hoặc phòng ban khác."
+            },
+            daily: {
+              label: "Giao tiếp Đời thường",
+              badgeColor: "amber",
+              chunk: "accommodate a last-minute change",
+              chunkVi: "xoay xở cho một thay đổi phút chót",
+              register: "Tự nhiên · Đời sống & Du lịch",
+              sentence: "The restaurant was super busy, but the manager kindly accommodated our last-minute change from four seats to six.",
+              sentenceVi: "Nhà hàng cực kỳ đông khách, nhưng quản lý đã rất nhiệt tình sắp xếp thay đổi phút chót của chúng tôi từ 4 lên 6 ghế.",
+              note: "Cách khen dịch vụ chu đáo rất tự nhiên trong giao tiếp hàng ngày."
+            }
+          },
+          quiz: {
+            question: "The conference center is being expanded to __________ the growing number of international delegates attending next year's summit.",
+            options: ["accommodate", "elaborate", "delegate", "mitigate"],
+            answer: "accommodate",
+            explanation: "'accommodate' đi với số lượng người/khách tham dự mang nghĩa 'cung cấp đủ sức chứa / đáp ứng'."
+          },
+          chunkPuzzle: {
+            targetChunk: "accommodate your timeline for the launch",
+            meaningVi: "đáp ứng khung thời gian ra mắt của bạn",
+            distractors: ["with", "into"]
+          },
+          sentenceStarter: "We will do our best to accommodate your team's request regarding "
+        },
+        {
+          id: "address",
+          word: "address",
+          ipaUs: "/əˈdres/",
+          ipaUk: "/əˈdres/",
+          pos: "Verb",
+          cefr: "B2",
+          srsStatus: "review",
+          ef: 2.4,
+          intervalText: "Hôm nay",
+          meaningVi: "Giải quyết, xử lý trực diện một vấn đề hoặc mối quan ngại.",
+          meaningEn: "To think about and begin to deal with an issue, problem, or complaint formally and directly.",
+          trapTip: "Đừng chỉ dịch 'address' là 'địa chỉ' (Danh từ)! Khi là Động từ (nhấn âm 2 /əˈdres/), nó bằng với 'deal with / tackle' nhưng trang trọng hơn rất nhiều. Không dùng giới từ 'to' sau address khi mang nghĩa giải quyết vấn đề.",
+          family: ["addressable (adj)", "tackle / resolve (syn)", "ignore / overlook (ant)"],
+          contexts: {
+            toeic: {
+              label: "TOEIC Thương mại",
+              badgeColor: "indigo",
+              chunk: "address customer complaints promptly",
+              chunkVi: "giải quyết khiếu nại của khách hàng một cách nhanh chóng",
+              register: "Chuyên nghiệp · Customer Service",
+              sentence: "Our support team is trained to address customer complaints promptly to maintain high satisfaction ratings.",
+              sentenceVi: "Đội ngũ hỗ trợ của chúng tôi được đào tạo để giải quyết khiếu nại của khách hàng nhanh chóng nhằm duy trì mức độ hài lòng cao.",
+              note: "Cặp trạng từ 'address ... promptly / effectively' cực kỳ phổ biến trong đề thi TOEIC."
+            },
+            ielts: {
+              label: "IELTS Academic (Band 7.5+)",
+              badgeColor: "violet",
+              chunk: "address the root causes of climate change",
+              chunkVi: "giải quyết tận gốc nguyên nhân của biến đổi khí hậu",
+              register: "Học thuật · Mở bài & Kết bài Task 2",
+              sentence: "Governments must implement stringent carbon taxes to address the root causes of climate change rather than merely treating its symptoms.",
+              sentenceVi: "Chính phủ phải áp dụng thuế carbon nghiêm ngặt để giải quyết tận gốc nguyên nhân biến đổi khí hậu thay vì chỉ xử lý phần ngọn.",
+              note: "Cụm 'address the root causes of...' giúp câu văn học thuật sắc bén hơn hẳn 'solve the problem of...'."
+            },
+            workplace: {
+              label: "Giao tiếp Công sở",
+              badgeColor: "emerald",
+              chunk: "address the security concerns raised in the audit",
+              chunkVi: "xử lý các lo ngại bảo mật được nêu trong đợt kiểm toán",
+              register: "Trang trọng · Báo cáo & Họp dự án",
+              sentence: "In today's meeting, we need to address the security concerns raised in the Q3 audit before deploying to production.",
+              sentenceVi: "Trong cuộc họp hôm nay, chúng ta cần xử lý các lo ngại bảo mật được nêu trong đợt kiểm toán Quý 3 trước khi đưa lên môi trường thật.",
+              note: "Dùng trong biên bản họp (Meeting Minutes) để nêu mục tiêu cần giải quyết."
+            },
+            daily: {
+              label: "Giao tiếp Đời thường",
+              badgeColor: "amber",
+              chunk: "address the elephant in the room",
+              chunkVi: "nói thẳng vào vấn đề nhạy cảm mà ai cũng né tránh",
+              register: "Idiomatic · Giao tiếp tự nhiên",
+              sentence: "It's time we addressed the elephant in the room and talked openly about how we split the apartment bills.",
+              sentenceVi: "Đã đến lúc chúng ta nói thẳng vào vấn đề nhạy cảm và trao đổi cởi mở về cách chia tiền hóa đơn căn hộ.",
+              note: "Idiom cực hay khi muốn mở lời giải quyết khúc mắc trong cuộc sống hoặc nhóm bạn."
+            }
+          },
+          quiz: {
+            question: "The new software patch was released specifically to __________ the privacy vulnerabilities reported by users last week.",
+            options: ["address", "delegate", "align", "elaborate"],
+            answer: "address",
+            explanation: "'address vulnerabilities / concerns / issues' là cụm chuẩn mang nghĩa giải quyết, khắc phục vấn đề."
+          },
+          chunkPuzzle: {
+            targetChunk: "address the root causes of the issue",
+            meaningVi: "giải quyết nguyên nhân cốt lõi của vấn đề",
+            distractors: ["about", "to"]
+          },
+          sentenceStarter: "Our immediate priority this week is to address the concerns regarding "
+        },
+        {
+          id: "elaborate",
+          word: "elaborate",
+          ipaUs: "/ɪˈlæb.ə.reɪt/",
+          ipaUk: "/ɪˈlæb.ər.eɪt/",
+          pos: "Verb",
+          cefr: "B2-C1",
+          srsStatus: "learning",
+          ef: 2.5,
+          intervalText: "2 ngày tới",
+          meaningVi: "Giải thích kỹ hơn, trình bày chi tiết hơn về một ý tưởng hoặc kế hoạch.",
+          meaningEn: "To add more information to or explain something that you have said in greater detail.",
+          trapTip: "Chú ý giới từ đi kèm: Luôn là 'elaborate ON something' (không dùng elaborate about). Ngoài ra, khi là Tính từ (nhấn âm /ɪˈlæb.ər.ət/), nó mang nghĩa 'tỉ mỉ, công phu'.",
+          family: ["elaboration (n)", "elaborately (adv)", "expand on / flesh out (syn)"],
+          contexts: {
+            toeic: {
+              label: "TOEIC Thương mại",
+              badgeColor: "indigo",
+              chunk: "elaborate on the proposed marketing strategy",
+              chunkVi: "trình bày chi tiết hơn về chiến lược tiếp thị được đề xuất",
+              register: "Trang trọng · Thuyết trình & Phỏng vấn",
+              sentence: "During the second part of the seminar, Ms. Chen will elaborate on the proposed marketing strategy for Southeast Asia.",
+              sentenceVi: "Trong phần hai của hội thảo, bà Chen sẽ trình bày chi tiết hơn về chiến lược tiếp thị được đề xuất cho khu vực Đông Nam Á.",
+              note: "Bẫy giới từ TOEIC Part 5: Chỗ trống sau 'elaborate' thường chọn giới từ 'on' hoặc 'upon'."
+            },
+            ielts: {
+              label: "IELTS Academic (Band 7.5+)",
+              badgeColor: "violet",
+              chunk: "elaborate further on the socio-economic implications",
+              chunkVi: "phân tích sâu hơn về các hệ quả kinh tế - xã hội",
+              register: "Học thuật · IELTS Speaking Part 3 & Writing",
+              sentence: "To elaborate further on the socio-economic implications, prolonged inflation disproportionately affects low-income households.",
+              sentenceVi: "Để phân tích sâu hơn về các hệ quả kinh tế - xã hội, lạm phát kéo dài ảnh hưởng nặng nề hơn đến các hộ gia đình thu nhập thấp.",
+              note: "Cụm mở đầu cực mượt trong IELTS Speaking Part 3 khi giám khảo hỏi 'Can you tell me more about that?'."
+            },
+            workplace: {
+              label: "Giao tiếp Công sở",
+              badgeColor: "emerald",
+              chunk: "Could you elaborate a bit more on...",
+              chunkVi: "Bạn có thể nói rõ hơn một chút về... được không?",
+              register: "Lịch sự · Họp & Review thiết kế/code",
+              sentence: "Could you elaborate a bit more on how this API change will impact our mobile app latency?",
+              sentenceVi: "Bạn có thể giải thích chi tiết hơn một chút về việc thay đổi API này sẽ ảnh hưởng thế nào đến độ trễ ứng dụng di động không?",
+              note: "Thay thế hoàn hảo cho câu 'What do you mean?' dễ gây cảm giác chất vấn trong cuộc họp."
+            },
+            daily: {
+              label: "Giao tiếp Đời thường",
+              badgeColor: "amber",
+              chunk: "care to elaborate?",
+              chunkVi: "kể rõ hơn xem nào? (thân mật)",
+              register: "Thân mật · Trò chuyện bạn bè",
+              sentence: "You said the blind date was a total disaster—care to elaborate over coffee?",
+              sentenceVi: "Cậu bảo buổi hẹn hò giấu mặt là một thảm họa toàn tập—vừa uống cà phê vừa kể rõ hơn xem nào?",
+              note: "Câu hỏi ngắn gọn, tự nhiên khi muốn bạn bè kể thêm chi tiết chuyện thú vị."
+            }
+          },
+          quiz: {
+            question: "The candidate was asked to elaborate __________ her previous experience managing cross-functional engineering teams.",
+            options: ["on", "with", "into", "for"],
+            answer: "on",
+            explanation: "Cấu trúc cố định: 'elaborate on / upon something' (trình bày chi tiết hơn về điều gì)."
+          },
+          chunkPuzzle: {
+            targetChunk: "elaborate a bit more on this point",
+            meaningVi: "giải thích kỹ hơn một chút về điểm này",
+            distractors: ["about", "to"]
+          },
+          sentenceStarter: "Could you please elaborate on how we plan to "
+        },
+        {
+          id: "delegate",
+          word: "delegate",
+          ipaUs: "/ˈdel.ə.ɡeɪt/",
+          ipaUk: "/ˈdel.ɪ.ɡeɪt/",
+          pos: "Verb",
+          cefr: "B2-C1",
+          srsStatus: "review",
+          ef: 2.3,
+          intervalText: "Hôm nay",
+          meaningVi: "Ủy quyền, giao phó công việc hoặc trách nhiệm cho cấp dưới/người khác.",
+          meaningEn: "To give a particular job, duty, right, or power to someone else so that they do it for you.",
+          trapTip: "Phân biệt phát âm: Động từ 'ủy quyền' đọc đuôi /-ɡeɪt/ (/ˈdel.ə.ɡeɪt/), còn Danh từ 'đại biểu tham dự hội nghị' đọc đuôi /-ɡət/ (/ˈdel.ə.ɡət/). Cấu trúc chuẩn: delegate [task] TO [someone].",
+          family: ["delegation (n)", "delegate (n - đại biểu)", "assign / entrust (syn)"],
+          contexts: {
+            toeic: {
+              label: "TOEIC Thương mại",
+              badgeColor: "indigo",
+              chunk: "delegate routine administrative tasks to junior staff",
+              chunkVi: "bàn giao các công việc hành chính thường nhật cho nhân viên cấp dưới",
+              register: "Quản trị & Nhân sự · TOEIC Part 6/7",
+              sentence: "Department heads are encouraged to delegate routine administrative tasks to junior staff so they can focus on strategic planning.",
+              sentenceVi: "Các trưởng bộ phận được khuyến khích giao phó công việc hành chính thường nhật cho nhân viên cấp dưới để tập trung vào hoạch định chiến lược.",
+              note: "Cấu trúc 'delegate [something] to [someone]' rất hay được hỏi trong bài đọc quản trị doanh nghiệp."
+            },
+            ielts: {
+              label: "IELTS Academic (Band 7.5+)",
+              badgeColor: "violet",
+              chunk: "delegate decision-making authority to local councils",
+              chunkVi: "phân quyền ra quyết định cho chính quyền địa phương",
+              register: "Học thuật · Quản trị công & Tổ chức",
+              sentence: "Central governments often achieve higher efficiency when they delegate decision-making authority to local councils.",
+              sentenceVi: "Chính phủ trung ương thường đạt hiệu quả cao hơn khi phân quyền ra quyết định cho các hội đồng địa phương.",
+              note: "Cụm 'delegate decision-making authority' cực kỳ đắt giá cho chủ đề Government / Business."
+            },
+            workplace: {
+              label: "Giao tiếp Công sở",
+              badgeColor: "emerald",
+              chunk: "delegate ownership of the module to...",
+              chunkVi: "giao quyền phụ trách chính phân khu này cho...",
+              register: "Quản lý dự án · Agile / Scrum",
+              sentence: "To avoid overloading the tech lead, let's delegate ownership of the payment module to Minh starting next sprint.",
+              sentenceVi: "Để tránh làm quá tải Tech Lead, hãy giao quyền phụ trách chính module thanh toán cho Minh từ sprint tới.",
+              note: "Cách giao việc chuyên nghiệp, nhấn mạnh vào tinh thần làm chủ (ownership)."
+            },
+            daily: {
+              label: "Giao tiếp Đời thường",
+              badgeColor: "amber",
+              chunk: "delegate the party prep to everyone",
+              chunkVi: "phân công việc chuẩn bị tiệc cho mọi người",
+              register: "Đời sống · Gia đình & Sự kiện",
+              sentence: "Don't try to cook ten dishes by yourself—delegate the party prep to everyone in the family!",
+              sentenceVi: "Đừng cố tự nấu cả mười món một mình—hãy phân công việc chuẩn bị bữa tiệc cho mọi người trong nhà đi!",
+              note: "Dùng vui vẻ trong gia đình khi tổ chức tiệc tùng, dọn dẹp."
+            }
+          },
+          quiz: {
+            question: "Effective managers know how to __________ operational tasks to capable team members rather than micromanaging every detail.",
+            options: ["delegate", "expedite", "mitigate", "bottleneck"],
+            answer: "delegate",
+            explanation: "'delegate tasks to team members' nghĩa là giao phó/ủy quyền công việc cho thành viên nhóm."
+          },
+          chunkPuzzle: {
+            targetChunk: "delegate routine tasks to junior staff",
+            meaningVi: "giao các việc thường nhật cho nhân viên cấp dưới",
+            distractors: ["for", "with"]
+          },
+          sentenceStarter: "To keep the project moving smoothly, I will delegate "
+        },
+        {
+          id: "mitigate",
+          word: "mitigate",
+          ipaUs: "/ˈmɪt.ə.ɡeɪt/",
+          ipaUk: "/ˈmɪt.ɪ.ɡeɪt/",
+          pos: "Verb",
+          cefr: "C1",
+          srsStatus: "learning",
+          ef: 2.6,
+          intervalText: "3 ngày tới",
+          meaningVi: "Giảm thiểu, làm dịu bớt mức độ nghiêm trọng hoặc rủi ro.",
+          meaningEn: "To make something harmful, unpleasant, or bad less severe, serious, or painful.",
+          trapTip: "Từ vựng hạng C1 'vàng mười'! Không dùng 'mitigate' cho những thứ tích cực hay số lượng thông thường (như giá cả); luôn đi kèm các danh từ mang sắc thái tiêu cực: rủi ro (risks), thiệt hại (damage), tác động xấu (adverse impacts).",
+          family: ["mitigation (n)", "mitigating (adj)", "alleviate / minimize (syn)", "exacerbate / aggravate (ant)"],
+          contexts: {
+            toeic: {
+              label: "TOEIC Thương mại",
+              badgeColor: "indigo",
+              chunk: "mitigate supply chain disruptions",
+              chunkVi: "giảm thiểu sự gián đoạn chuỗi cung ứng",
+              register: "Kinh doanh & Tài chính · C1",
+              sentence: "Diversifying our vendor network in Asia helped mitigate supply chain disruptions during the peak shipping season.",
+              sentenceVi: "Việc đa dạng hóa mạng lưới nhà cung cấp tại châu Á đã giúp giảm thiểu sự gián đoạn chuỗi cung ứng trong mùa vận chuyển cao điểm.",
+              note: "Xuất hiện nhiều trong các bài báo cáo tài chính, quản trị rủi ro (Risk Management)."
+            },
+            ielts: {
+              label: "IELTS Academic (Band 7.5+)",
+              badgeColor: "violet",
+              chunk: "mitigate the adverse environmental impacts of...",
+              chunkVi: "giảm nhẹ các tác động tiêu cực đến môi trường của...",
+              register: "Học thuật Band 8.0 · Environment & Health",
+              sentence: "Reforestation initiatives play a vital role in mitigating the adverse environmental impacts of industrial expansion.",
+              sentenceVi: "Các sáng kiến trồng rừng đóng vai trò thiết yếu trong việc giảm nhẹ các tác động tiêu cực đến môi trường của quá trình mở rộng công nghiệp.",
+              note: "Thay thế hoàn hảo cho 'reduce bad effects' trong IELTS Writing Task 2."
+            },
+            workplace: {
+              label: "Giao tiếp Công sở",
+              badgeColor: "emerald",
+              chunk: "mitigate the risk of downtime",
+              chunkVi: "giảm thiểu rủi ro sập hệ thống / gián đoạn dịch vụ",
+              register: "Kỹ thuật & Quản trị dự án",
+              sentence: "We have set up automated failover servers to mitigate the risk of downtime during Black Friday traffic spikes.",
+              sentenceVi: "Chúng tôi đã thiết lập máy chủ dự phòng tự động để giảm thiểu rủi ro sập hệ thống trong đợt tăng vọt lưu lượng dịp Black Friday.",
+              note: "Cụm 'mitigate the risk of...' là ngôn ngữ chuẩn mực của Senior Engineer / PM."
+            },
+            daily: {
+              label: "Giao tiếp Đời thường",
+              badgeColor: "amber",
+              chunk: "mitigate the jet lag",
+              chunkVi: "làm dịu bớt cơn mệt mỏi do lệch múi giờ",
+              register: "Đời sống & Sức khỏe",
+              sentence: "Staying hydrated and getting morning sunlight really helped mitigate the jet lag after my flight to London.",
+              sentenceVi: "Uống đủ nước và đón nắng sớm thực sự giúp làm dịu bớt cơn lệch múi giờ sau chuyến bay tới London của tôi.",
+              note: "Dùng cho sức khỏe, triệu chứng mệt mỏi thường ngày rất tự nhiên."
+            }
+          },
+          quiz: {
+            question: "Financial institutions must adopt strict cybersecurity protocols to __________ the risk of data breaches.",
+            options: ["mitigate", "elaborate", "expedite", "accommodate"],
+            answer: "mitigate",
+            explanation: "Collocation kinh điển: 'mitigate the risk / impact / damage' (giảm thiểu rủi ro/tác động)."
+          },
+          chunkPuzzle: {
+            targetChunk: "mitigate the risk of project delays",
+            meaningVi: "giảm thiểu rủi ro chậm trễ dự án",
+            distractors: ["into", "with"]
+          },
+          sentenceStarter: "To mitigate the potential risks associated with this release, we should "
+        },
+        {
+          id: "expedite",
+          word: "expedite",
+          ipaUs: "/ˈek.spə.daɪt/",
+          ipaUk: "/ˈek.spɪ.daɪt/",
+          pos: "Verb",
+          cefr: "C1",
+          srsStatus: "review",
+          ef: 2.3,
+          intervalText: "Hôm nay",
+          meaningVi: "Đẩy nhanh tiến độ, xúc tiến quy trình hoặc thủ tục.",
+          meaningEn: "To make a process, approval, or delivery happen more quickly and efficiently.",
+          trapTip: "Cẩn thận nhầm với 'expedition' (chuyến thám hiểm)! 'Expedite' là ngoại động từ trang trọng thay cho 'speed up', đặc biệt hay đi với: shipping (giao hàng), approval (phê duyệt), customs clearance (thông quan).",
+          family: ["expedited (adj - giao nhanh)", "expeditious (adj)", "accelerate / fast-track (syn)"],
+          contexts: {
+            toeic: {
+              label: "TOEIC Thương mại",
+              badgeColor: "indigo",
+              chunk: "expedite the shipment at no extra charge",
+              chunkVi: "đẩy nhanh việc giao lô hàng mà không tính thêm phí",
+              register: "Thương mại & Logistics · TOEIC Part 7",
+              sentence: "To apologize for the inventory error, we will expedite the shipment at no extra charge so it arrives by Tuesday.",
+              sentenceVi: "Để xin lỗi vì sai sót tồn kho, chúng tôi sẽ đẩy nhanh việc giao hàng miễn phí để đơn hàng đến nơi trước thứ Ba.",
+              note: "Từ khóa ăn điểm trong các email xử lý đơn hàng trễ của TOEIC."
+            },
+            ielts: {
+              label: "IELTS Academic (Band 7.5+)",
+              badgeColor: "violet",
+              chunk: "expedite the transition toward renewable energy",
+              chunkVi: "thúc đẩy nhanh quá trình chuyển dịch sang năng lượng tái tạo",
+              register: "Học thuật C1 · Chính sách & Công nghệ",
+              sentence: "Government subsidies for solar panels can significantly expedite the transition toward renewable energy.",
+              sentenceVi: "Trợ cấp của chính phủ cho pin mặt trời có thể thúc đẩy đáng kể quá trình chuyển dịch sang năng lượng tái tạo.",
+              note: "Nâng tầm câu văn hơn hẳn 'make the change faster'."
+            },
+            workplace: {
+              label: "Giao tiếp Công sở",
+              badgeColor: "emerald",
+              chunk: "expedite the legal review process",
+              chunkVi: "xúc tiến nhanh quy trình rà soát pháp lý",
+              register: "Lịch sự, khẩn trương · Email liên phòng ban",
+              sentence: "Is there any way we can expedite the legal review process for this vendor contract before month-end?",
+              sentenceVi: "Có cách nào để chúng ta xúc tiến nhanh quy trình rà soát pháp lý cho hợp đồng nhà cung cấp này trước cuối tháng không?",
+              note: "Cách nhờ vả hối thúc tiến độ cực kỳ lịch sự, không gây khó chịu cho đồng nghiệp."
+            },
+            daily: {
+              label: "Giao tiếp Đời thường",
+              badgeColor: "amber",
+              chunk: "pay for expedited passport processing",
+              chunkVi: "đóng phí làm hộ chiếu nhanh",
+              register: "Thủ tục hành chính & Du lịch",
+              sentence: "Since my trip is in two weeks, I had to pay an extra fee for expedited passport processing.",
+              sentenceVi: "Vì chuyến đi của tôi chỉ còn 2 tuần nữa nên tôi phải đóng thêm phí để làm thủ tục cấp hộ chiếu nhanh.",
+              note: "Tính từ 'expedited shipping / expedited processing' xuất hiện trên mọi trang thương mại điện tử."
+            }
+          },
+          quiz: {
+            question: "Please submit all signed invoices by noon so the finance department can __________ your reimbursement.",
+            options: ["expedite", "elaborate", "delegate", "bottleneck"],
+            answer: "expedite",
+            explanation: "'expedite reimbursement / approval / delivery' mang nghĩa đẩy nhanh tiến độ xử lý/hoàn tiền."
+          },
+          chunkPuzzle: {
+            targetChunk: "expedite the contract approval process",
+            meaningVi: "xúc tiến nhanh quy trình phê duyệt hợp đồng",
+            distractors: ["on", "slow"]
+          },
+          sentenceStarter: "Could you please help us expedite the approval for "
+        },
+        {
+          id: "align",
+          word: "align",
+          ipaUs: "/əˈlaɪn/",
+          ipaUk: "/əˈlaɪn/",
+          pos: "Verb",
+          cefr: "B2",
+          srsStatus: "mastered",
+          ef: 2.8,
+          intervalText: "7 ngày tới",
+          meaningVi: "Căn chỉnh cho khớp nhau; thống nhất quan điểm, mục tiêu giữa các bên.",
+          meaningEn: "To bring into agreement, coordination, or close cooperation toward a shared goal.",
+          trapTip: "Từ khóa số 1 nơi công sở quốc tế! Chú ý âm 'g' câm (/əˈlaɪn/). Khi nói thống nhất ý kiến với ai hoặc phù hợp với mục tiêu nào, luôn dùng giới từ 'align WITH' (hoặc 'get aligned ON a plan').",
+          family: ["alignment (n)", "misaligned (adj - lệch pha)", "coordinate / sync (syn)"],
+          contexts: {
+            toeic: {
+              label: "TOEIC Thương mại",
+              badgeColor: "indigo",
+              chunk: "align departmental budgets with corporate goals",
+              chunkVi: "điều chỉnh ngân sách phòng ban khớp với mục tiêu chung của tập đoàn",
+              register: "Chiến lược doanh nghiệp · TOEIC",
+              sentence: "All regional directors must align departmental budgets with corporate goals for the upcoming fiscal year.",
+              sentenceVi: "Tất cả giám đốc khu vực phải điều chỉnh ngân sách phòng ban thống nhất với mục tiêu chung của tập đoàn trong năm tài chính tới.",
+              note: "Cấu trúc 'align A with B' xuất hiện thường xuyên trong thông báo nội bộ."
+            },
+            ielts: {
+              label: "IELTS Academic (Band 7.5+)",
+              badgeColor: "violet",
+              chunk: "align university curricula with labor market demands",
+              chunkVi: "điều chỉnh chương trình đại học sát với nhu cầu thị trường lao động",
+              register: "Học thuật · Chủ đề Education & Employment",
+              sentence: "Tertiary institutions should closely align university curricula with evolving labor market demands.",
+              sentenceVi: "Các cơ sở giáo dục đại học nên điều chỉnh chương trình giảng dạy bám sát với nhu cầu ngày càng thay đổi của thị trường lao động.",
+              note: "Ý tưởng và cụm từ cực sáng giá cho đề bài IELTS về giáo dục đại học."
+            },
+            workplace: {
+              label: "Giao tiếp Công sở",
+              badgeColor: "emerald",
+              chunk: "make sure we are fully aligned on the scope",
+              chunkVi: "đảm bảo chúng ta hoàn toàn thống nhất về phạm vi công việc",
+              register: "Họp dự án · Kick-off & Sync",
+              sentence: "Before we start coding, let's do a quick 10-minute sync to make sure we are fully aligned on the scope.",
+              sentenceVi: "Trước khi bắt đầu code, hãy trao đổi nhanh 10 phút để đảm bảo chúng ta hoàn toàn thống nhất về phạm vi công việc.",
+              note: "Câu cửa miệng của Product Manager và Tech Lead trong các công ty đa quốc gia."
+            },
+            daily: {
+              label: "Giao tiếp Đời thường",
+              badgeColor: "amber",
+              chunk: "align with my personal values",
+              chunkVi: "phù hợp với giá trị sống cá nhân của tôi",
+              register: "Đời sống & Định hướng bản thân",
+              sentence: "I turned down the job offer because the company culture didn't really align with my personal values.",
+              sentenceVi: "Tôi đã từ chối lời mời làm việc vì văn hóa công ty đó không thực sự phù hợp với giá trị cá nhân của tôi.",
+              note: "Dùng rất hay khi chia sẻ về lối sống, định hướng nghề nghiệp."
+            }
+          },
+          quiz: {
+            question: "Let's schedule a brief meeting tomorrow morning to ensure the design and engineering teams are __________ on the new product specifications.",
+            options: ["aligned", "expedited", "mitigated", "delegated"],
+            answer: "aligned",
+            explanation: "'be aligned on something' mang nghĩa thống nhất quan điểm, hiểu đúng ý nhau về một kế hoạch."
+          },
+          chunkPuzzle: {
+            targetChunk: "make sure we are aligned on the scope",
+            meaningVi: "đảm bảo chúng ta thống nhất về phạm vi công việc",
+            distractors: ["at", "by"]
+          },
+          sentenceStarter: "I want to make sure our team is fully aligned on "
+        },
+        {
+          id: "feasible",
+          word: "feasible",
+          ipaUs: "/ˈfiː.zə.bəl/",
+          ipaUk: "/ˈfiː.zə.bəl/",
+          pos: "Adjective",
+          cefr: "B2-C1",
+          srsStatus: "mastered",
+          ef: 2.7,
+          intervalText: "7 ngày tới",
+          meaningVi: "Khả thi, có thể thực hiện được trên thực tế (về thời gian, chi phí, kỹ thuật).",
+          meaningEn: "Possible, practical, and likely to be achieved successfully given available resources.",
+          trapTip: "Khác với 'possible' (chỉ khả năng lý thuyết có thể xảy ra), 'feasible' nhấn mạnh vào tính thực thi thực tế khi xét đến ngân sách, thời gian và nguồn lực (nghiên cứu khả thi = feasibility study).",
+          family: ["feasibility (n)", "infeasible (adj)", "viable / practical (syn)"],
+          contexts: {
+            toeic: {
+              label: "TOEIC Thương mại",
+              badgeColor: "indigo",
+              chunk: "conduct a comprehensive feasibility study",
+              chunkVi: "tiến hành một nghiên cứu tiền khả thi toàn diện",
+              register: "Đầu tư & Dự án · TOEIC Part 5/7",
+              sentence: "The board of directors voted to conduct a comprehensive feasibility study before approving the new factory construction.",
+              sentenceVi: "Hội đồng quản trị đã bỏ phiếu tiến hành một nghiên cứu khả thi toàn diện trước khi phê duyệt việc xây dựng nhà máy mới.",
+              note: "Cụm danh từ ghép 'feasibility study' là cụm cố định cực kỳ phổ biến."
+            },
+            ielts: {
+              label: "IELTS Academic (Band 7.5+)",
+              badgeColor: "violet",
+              chunk: "an economically feasible alternative to fossil fuels",
+              chunkVi: "một giải pháp thay thế khả thi về mặt kinh tế cho nhiên liệu hóa thạch",
+              register: "Học thuật · Đánh giá giải pháp Task 2",
+              sentence: "Advancements in battery storage have made solar power an economically feasible alternative to fossil fuels.",
+              sentenceVi: "Những tiến bộ trong lưu trữ pin đã biến điện mặt trời thành một giải pháp thay thế khả thi về mặt kinh tế cho nhiên liệu hóa thạch.",
+              note: "Cặp 'economically / technically / politically feasible' giúp lập luận cực kỳ thuyết phục."
+            },
+            workplace: {
+              label: "Giao tiếp Công sở",
+              badgeColor: "emerald",
+              chunk: "not feasible within the current timeframe",
+              chunkVi: "không khả thi trong khung thời gian hiện tại",
+              register: "Đàm phán deadline · Lịch sự & Chuyên nghiệp",
+              sentence: "Adding three new payment gateways is not feasible within the current timeframe unless we push the release date by two weeks.",
+              sentenceVi: "Việc thêm ba cổng thanh toán mới là không khả thi trong khung thời gian hiện tại trừ khi chúng ta lùi ngày ra mắt lại hai tuần.",
+              note: "Cách từ chối yêu cầu vô lý (scope creep) một cách khách quan thay vì nói 'I can't do it'."
+            },
+            daily: {
+              label: "Giao tiếp Đời thường",
+              badgeColor: "amber",
+              chunk: "doesn't seem feasible right now",
+              chunkVi: "hiện tại có vẻ chưa thực tế / chưa làm được",
+              register: "Kế hoạch cá nhân & Tài chính",
+              sentence: "Buying a house in the city center just doesn't seem feasible right now with mortgage rates this high.",
+              sentenceVi: "Mua nhà ở trung tâm thành phố hiện tại có vẻ chưa khả thi khi lãi suất vay mua nhà cao thế này.",
+              note: "Dùng khi bàn chuyện chi tiêu, kế hoạch du lịch hoặc mua sắm lớn."
+            }
+          },
+          quiz: {
+            question: "While the proposed design looks impressive, our engineers determined that it is not technically __________ given our current hardware constraints.",
+            options: ["feasible", "accommodating", "elaborate", "aligned"],
+            answer: "feasible",
+            explanation: "'technically feasible' nghĩa là khả thi về mặt kỹ thuật."
+          },
+          chunkPuzzle: {
+            targetChunk: "not feasible within the current timeframe",
+            meaningVi: "không khả thi trong khung thời gian hiện tại",
+            distractors: ["on", "from"]
+          },
+          sentenceStarter: "Given our current budget and resources, it would be more feasible to "
+        },
+        {
+          id: "bottleneck",
+          word: "bottleneck",
+          ipaUs: "/ˈbɑː.təl.nek/",
+          ipaUk: "/ˈbɒt.əl.nek/",
+          pos: "Noun",
+          cefr: "B2-C1",
+          srsStatus: "learning",
+          ef: 2.5,
+          intervalText: "2 ngày tới",
+          meaningVi: "Điểm nghẽn, nút thắt cổ chai làm trì trệ toàn bộ quy trình hoặc tiến độ.",
+          meaningEn: "A point of congestion or blockage in a system or workflow that slows down overall progress.",
+          trapTip: "Hình ảnh ẩn dụ từ 'cổ chai' hẹp làm nước chảy chậm lại. Trong công sở và kỹ thuật, các động từ chuẩn đi trước 'bottleneck' là: identify (xác định), eliminate / remove (loại bỏ), hoặc resolve (giải quyết) a bottleneck.",
+          family: ["bottlenecked (adj)", "gridlock / impediment / constraint (syn)"],
+          contexts: {
+            toeic: {
+              label: "TOEIC Thương mại",
+              badgeColor: "indigo",
+              chunk: "eliminate production bottlenecks at the assembly plant",
+              chunkVi: "loại bỏ các điểm nghẽn sản xuất tại nhà máy lắp ráp",
+              register: "Sản xuất & Vận hành · TOEIC",
+              sentence: "Installing automated sorting machines helped eliminate production bottlenecks at the main assembly plant.",
+              sentenceVi: "Việc lắp đặt máy phân loại tự động đã giúp loại bỏ các điểm nghẽn sản xuất tại nhà máy lắp ráp chính.",
+              note: "Hay gặp trong chủ đề Manufacturing, Logistics và Operations."
+            },
+            ielts: {
+              label: "IELTS Academic (Band 7.5+)",
+              badgeColor: "violet",
+              chunk: "severe infrastructure bottlenecks hindering economic growth",
+              chunkVi: "những điểm nghẽn hạ tầng nghiêm trọng cản trở tăng trưởng kinh tế",
+              register: "Học thuật · Kinh tế vĩ mô & Giao thông",
+              sentence: "Developing nations must invest in modern ports and railways to overcome severe infrastructure bottlenecks hindering economic growth.",
+              sentenceVi: "Các quốc gia đang phát triển phải đầu tư vào cảng biển và đường sắt hiện đại để tháo gỡ những điểm nghẽn hạ tầng nghiêm trọng đang cản trở tăng trưởng kinh tế.",
+              note: "Từ vựng cực chất khi viết về giao thông đô thị hoặc phát triển kinh tế."
+            },
+            workplace: {
+              label: "Giao tiếp Công sở",
+              badgeColor: "emerald",
+              chunk: "identify the main bottleneck in our QA workflow",
+              chunkVi: "xác định điểm nghẽn chính trong quy trình kiểm thử QA",
+              register: "Báo cáo tiến độ · Daily Standup & Retro",
+              sentence: "During the sprint retrospective, the team worked together to identify the main bottleneck in our QA workflow.",
+              sentenceVi: "Trong buổi họp nhìn lại sprint (Retrospective), cả nhóm đã cùng làm việc để xác định điểm nghẽn chính trong quy trình kiểm thử QA.",
+              note: "Giúp bạn mô tả vấn đề quy trình một cách chuyên nghiệp mà không đổ lỗi cá nhân."
+            },
+            daily: {
+              label: "Giao tiếp Đời thường",
+              badgeColor: "amber",
+              chunk: "stuck in a traffic bottleneck at the bridge",
+              chunkVi: "bị kẹt cứng ở nút thắt giao thông ngay đầu cầu",
+              register: "Đời sống · Đi lại hàng ngày",
+              sentence: "I'll be ten minutes late—I'm stuck in a huge traffic bottleneck right at the bridge entrance.",
+              sentenceVi: "Mình sẽ đến muộn 10 phút nhé—mình đang bị kẹt ở nút thắt giao thông ngay lối lên cầu.",
+              note: "Nghĩa đen thực tế dùng khi mô tả đoạn đường bị thu hẹp gây kẹt xe."
+            }
+          },
+          quiz: {
+            question: "Manual invoice approval has become a major __________ that delays vendor payments by up to two weeks.",
+            options: ["bottleneck", "delegation", "accommodation", "alignment"],
+            answer: "bottleneck",
+            explanation: "'a major bottleneck' (điểm nghẽn lớn) là danh từ chỉ khâu làm chậm toàn bộ quy trình."
+          },
+          chunkPuzzle: {
+            targetChunk: "identify the main bottleneck in our workflow",
+            meaningVi: "xác định điểm nghẽn chính trong quy trình làm việc",
+            distractors: ["at", "with"]
+          },
+          sentenceStarter: "Right now, the biggest bottleneck slowing down our progress is "
+        },
+        {
+          id: "follow-up",
+          word: "follow up / touch base",
+          ipaUs: "/ˈfɑː.loʊ ʌp / tʌtʃ beɪs/",
+          ipaUk: "/ˈfɒl.əʊ ʌp / tʌtʃ beɪs/",
+          pos: "Verb Chunk",
+          cefr: "B2",
+          srsStatus: "mastered",
+          ef: 2.9,
+          intervalText: "10 ngày tới",
+          meaningVi: "Liên hệ lại để cập nhật tình hình, theo sát tiến độ hoặc nhắc nhở khéo.",
+          meaningEn: "To make further contact with someone to check progress, exchange updates, or pursue an earlier discussion.",
+          trapTip: "Quy tắc dấu gạch ngang: Khi là Động từ thì viết rời ('I will follow up with you'), nhưng khi là Danh từ hoặc Tính từ đứng trước danh từ thì có gạch nối ('a follow-up email', 'a quick follow-up'). 'Touch base' thân thiện và nhẹ nhàng hơn khi hỏi thăm tiến độ.",
+          family: ["follow-up (n/adj)", "check in / circle back (syn)"],
+          contexts: {
+            toeic: {
+              label: "TOEIC Thương mại",
+              badgeColor: "indigo",
+              chunk: "follow up on the status of your application",
+              chunkVi: "theo dõi / hỏi thăm về tình trạng hồ sơ của bạn",
+              register: "Email giao dịch & Tuyển dụng · TOEIC",
+              sentence: "I am writing to follow up on the status of the vendor application we submitted on October 15.",
+              sentenceVi: "Tôi viết thư này để hỏi thăm về tình trạng hồ sơ đăng ký nhà cung cấp mà chúng tôi đã nộp vào ngày 15 tháng 10.",
+              note: "Cấu trúc chuẩn mở đầu email nhắc việc: 'I am writing to follow up on...'."
+            },
+            ielts: {
+              label: "IELTS Academic (Band 7.5+)",
+              badgeColor: "violet",
+              chunk: "conduct a longitudinal follow-up study",
+              chunkVi: "tiến hành một nghiên cứu theo dõi dọc dài hạn",
+              register: "Học thuật · Nghiên cứu khoa học & Y tế",
+              sentence: "Researchers conducted a five-year follow-up study to evaluate the long-term efficacy of the educational reform.",
+              sentenceVi: "Các nhà nghiên cứu đã tiến hành một nghiên cứu theo dõi kéo dài 5 năm để đánh giá hiệu quả lâu dài của cuộc cải cách giáo dục.",
+              note: "Trong IELTS Academic, hãy ưu tiên dạng danh từ ghép 'a follow-up study / assessment' thay vì phrasal verb."
+            },
+            workplace: {
+              label: "Giao tiếp Công sở",
+              badgeColor: "emerald",
+              chunk: "just wanted to touch base with you regarding...",
+              chunkVi: "chỉ muốn liên hệ nhanh với bạn để cập nhật về...",
+              register: "Lịch sự, không gây áp lực · Email & Slack",
+              sentence: "Hi Sarah, I just wanted to touch base with you regarding the Q4 budget proposal and see if you need any additional data.",
+              sentenceVi: "Chào Sarah, mình chỉ muốn liên hệ nhanh với bạn về đề xuất ngân sách Quý 4 và xem bạn có cần thêm số liệu nào không.",
+              note: "Cách nhắc khéo đồng nghiệp hoặc khách hàng đỉnh cao mà không tạo cảm giác hối thúc nặng nề."
+            },
+            daily: {
+              label: "Giao tiếp Đời thường",
+              badgeColor: "amber",
+              chunk: "touch base next week over lunch",
+              chunkVi: "tuần sau gặp nhau ăn trưa cập nhật tình hình nhé",
+              register: "Thân thiện · Bạn bè & Mối quan hệ",
+              sentence: "It's been ages since we caught up! Let's touch base next week over lunch.",
+              sentenceVi: "Lâu lắm rồi tụi mình chưa gặp nhau! Tuần sau đi ăn trưa cập nhật tình hình nhé.",
+              note: "Dùng để giữ liên lạc với bạn bè hoặc đồng nghiệp cũ."
+            }
+          },
+          quiz: {
+            question: "After sending the initial quotation, the account manager scheduled a __________ call for Thursday to answer any technical questions.",
+            options: ["follow-up", "bottleneck", "feasible", "mitigated"],
+            answer: "follow-up",
+            explanation: "Đứng trước danh từ 'call', ta dùng tính từ ghép có dấu gạch nối 'follow-up call' (cuộc gọi trao đổi tiếp theo)."
+          },
+          chunkPuzzle: {
+            targetChunk: "follow up on the status of the proposal",
+            meaningVi: "theo dõi tình trạng của bản đề xuất",
+            distractors: ["into", "at"]
+          },
+          sentenceStarter: "Hi team, I just wanted to follow up on "
+        }
+      ];
+
+      // 2. WORKPLACE PHRASEBOOK ITEMS (12 PRACTICAL TEMPLATES)
+      const DEFAULT_PHRASEBOOK = [
+        {
+          id: "pb-1",
+          category: "email",
+          categoryLabel: "📧 Email & Báo cáo",
+          situation: "Nhắc khéo đối tác/đồng nghiệp phản hồi email mà không gây áp lực",
+          chunk: "follow up on / touch base regarding",
+          sentenceEn: "Hi Alex, I wanted to quickly touch base regarding the contract draft sent last Tuesday and see if you have any feedback.",
+          sentenceVi: "Chào Alex, mình muốn liên hệ nhanh về bản dự thảo hợp đồng gửi hôm thứ Ba tuần trước và xem bạn có góp ý gì không.",
+          tone: "Lịch sự · Thiện chí",
+          saved: true
+        },
+        {
+          id: "pb-2",
+          category: "deadline",
+          categoryLabel: "⏳ Đàm phán & Deadline",
+          situation: "Từ chối khéo yêu cầu thêm tính năng sát ngày ra mắt (Scope Creep)",
+          chunk: "not feasible within the current timeframe",
+          sentenceEn: "While this feature adds great value, implementing it now is not feasible within the current timeframe without impacting Friday's release.",
+          sentenceVi: "Dù tính năng này mang lại giá trị lớn, việc triển khai ngay lúc này là không khả thi trong khung thời gian hiện tại nếu không làm ảnh hưởng đến đợt ra mắt thứ Sáu.",
+          tone: "Khách quan · Chắc chắn",
+          saved: true
+        },
+        {
+          id: "pb-3",
+          category: "meeting",
+          categoryLabel: "🎙️ Họp hành & Thuyết trình",
+          situation: "Nhờ đồng nghiệp giải thích sâu hơn một ý kiến trong cuộc họp",
+          chunk: "elaborate a bit more on...",
+          sentenceEn: "That's an interesting approach—could you elaborate a bit more on how we will handle data migration?",
+          sentenceVi: "Hướng tiếp cận đó rất thú vị—bạn có thể trình bày chi tiết hơn một chút về cách chúng ta xử lý việc chuyển đổi dữ liệu không?",
+          tone: "Tôn trọng · Cầu thị",
+          saved: false
+        },
+        {
+          id: "pb-4",
+          category: "meeting",
+          categoryLabel: "🎙️ Họp hành & Thuyết trình",
+          situation: "Chốt lại sự thống nhất của cả nhóm trước khi kết thúc cuộc họp",
+          chunk: "make sure we are fully aligned on...",
+          sentenceEn: "Before we wrap up, let's recap the action items to make sure everyone is fully aligned on the deliverables for next week.",
+          sentenceVi: "Trước khi kết thúc, hãy điểm lại các đầu việc để đảm bảo mọi người hoàn toàn thống nhất về kết quả cần bàn giao trong tuần tới.",
+          tone: "Chuyên nghiệp · Rõ ràng",
+          saved: true
+        },
+        {
+          id: "pb-5",
+          category: "slack",
+          categoryLabel: "💬 Nhắn tin Slack / Teams",
+          situation: "Báo cáo điểm nghẽn đang làm chậm tiến độ trong Daily Standup",
+          chunk: "identify / resolve a bottleneck in...",
+          sentenceEn: "Quick update: coding is 100% done, but we hit a bottleneck in staging environment deployment. DevOps is looking into it now.",
+          sentenceVi: "Cập nhật nhanh: phần code đã xong 100%, nhưng chúng ta đang vướng một điểm nghẽn ở khâu đưa lên môi trường staging. Đội DevOps đang kiểm tra.",
+          tone: "Ngắn gọn · Minh bạch",
+          saved: false
+        },
+        {
+          id: "pb-6",
+          category: "email",
+          categoryLabel: "📧 Email & Báo cáo",
+          situation: "Trấn an khách hàng rằng vấn đề của họ đang được xử lý trực diện",
+          chunk: "address the issue promptly",
+          sentenceEn: "Thank you for bringing this to our attention. Our engineering team is actively working to address the issue promptly.",
+          sentenceVi: "Cảm ơn bạn đã thông báo điều này cho chúng tôi. Đội ngũ kỹ thuật đang tích cực làm việc để giải quyết vấn đề một cách nhanh chóng.",
+          tone: "Chuyên nghiệp · Đáng tin cậy",
+          saved: false
+        },
+        {
+          id: "pb-7",
+          category: "deadline",
+          categoryLabel: "⏳ Đàm phán & Deadline",
+          situation: "Nhờ bộ phận khác ưu tiên duyệt gấp hồ sơ hoặc hợp đồng",
+          chunk: "expedite the approval process",
+          sentenceEn: "Since the client is ready to sign today, we would greatly appreciate it if you could help expedite the legal approval process.",
+          sentenceVi: "Vì khách hàng đã sẵn sàng ký kết hôm nay, chúng tôi rất cảm kích nếu bạn có thể hỗ trợ xúc tiến nhanh quy trình phê duyệt pháp lý.",
+          tone: "Khẩn trương · Lịch sự",
+          saved: false
+        },
+        {
+          id: "pb-8",
+          category: "email",
+          categoryLabel: "📧 Email & Báo cáo",
+          situation: "Đề xuất phương án dự phòng để giảm thiểu rủi ro dự án",
+          chunk: "mitigate the risk of...",
+          sentenceEn: "To mitigate the risk of server overload during the campaign, we recommend scaling up cloud capacity 24 hours in advance.",
+          sentenceVi: "Để giảm thiểu rủi ro quá tải máy chủ trong chiến dịch, chúng tôi khuyến nghị nâng cấp dung lượng đám mây trước 24 giờ.",
+          tone: "Tư vấn · Chiến lược",
+          saved: false
+        },
+        {
+          id: "pb-9",
+          category: "slack",
+          categoryLabel: "💬 Nhắn tin Slack / Teams",
+          situation: "Bàn giao quyền phụ trách đầu việc cho thành viên trong nhóm",
+          chunk: "delegate ownership of...",
+          sentenceEn: "While I'm attending the client summit on Thursday, I'll delegate ownership of the release checklist to Lan.",
+          sentenceVi: "Trong lúc mình tham dự hội nghị khách hàng vào thứ Năm, mình sẽ ủy quyền phụ trách danh sách kiểm tra ra mắt sản phẩm cho Lan.",
+          tone: "Rõ ràng · Tin tưởng",
+          saved: false
+        },
+        {
+          id: "pb-10",
+          category: "deadline",
+          categoryLabel: "⏳ Đàm phán & Deadline",
+          situation: "Thông báo điều chỉnh kế hoạch để hỗ trợ yêu cầu mới từ khách hàng",
+          chunk: "accommodate your request / timeline",
+          sentenceEn: "We have rearranged our testing schedule so that we can accommodate your request for an early demo on Wednesday.",
+          sentenceVi: "Chúng tôi đã sắp xếp lại lịch kiểm thử để có thể đáp ứng yêu cầu xem bản demo sớm vào thứ Tư của bạn.",
+          tone: "Hợp tác · Linh hoạt",
+          saved: false
+        }
+      ];
+
+      // 3. POSTGRESQL SCHEMA DDL STRING
+      const SQL_SCHEMA_TEXT = `-- LexiFlow Pro: 3-Tier Multi-Context Vocabulary & SM-2 SRS Schema
+CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
+-- 1. Bảng lưu trữ Tầng 1: Từ vựng cốt lõi (Core Words)
+CREATE TABLE words (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    slug VARCHAR(64) UNIQUE NOT NULL,
+    word_text VARCHAR(120) NOT NULL,
+    part_of_speech VARCHAR(32) NOT NULL,
+    cefr_level VARCHAR(16) NOT NULL DEFAULT 'B2',
+    ipa_us VARCHAR(120),
+    ipa_uk VARCHAR(120),
+    core_meaning_vi TEXT NOT NULL,
+    core_meaning_en TEXT,
+    exam_trap_note TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+-- 2. Bảng lưu trữ Tầng 2: Cụm từ theo 4 ngữ cảnh (Collocations & Chunks)
+CREATE TYPE context_domain AS ENUM ('toeic', 'ielts', 'workplace', 'daily');
+
+CREATE TABLE word_chunks (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    word_id UUID NOT NULL REFERENCES words(id) ON DELETE CASCADE,
+    context_type context_domain NOT NULL,
+    chunk_en TEXT NOT NULL,
+    chunk_vi TEXT NOT NULL,
+    register_note VARCHAR(160),
+    UNIQUE (word_id, context_type)
+);
+
+-- 3. Bảng lưu trữ Tầng 3: Mẫu câu hoàn chỉnh (Full Contextual Sentences)
+CREATE TABLE context_sentences (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    chunk_id UUID NOT NULL REFERENCES word_chunks(id) ON DELETE CASCADE,
+    sentence_en TEXT NOT NULL,
+    sentence_vi TEXT NOT NULL,
+    scoring_note TEXT,
+    audio_url VARCHAR(512)
+);
+
+-- 4. Bảng theo dõi Tiến độ SRS SM-2 & Lịch sử AI chấm câu của Học viên
+CREATE TYPE srs_state AS ENUM ('review', 'learning', 'mastered');
+
+CREATE TABLE user_srs_progress (
+    user_id UUID NOT NULL,
+    word_id UUID NOT NULL REFERENCES words(id) ON DELETE CASCADE,
+    srs_status srs_state NOT NULL DEFAULT 'review',
+    easiness_factor NUMERIC(4,2) NOT NULL DEFAULT 2.50,
+    interval_days INTEGER NOT NULL DEFAULT 0,
+    repetitions INTEGER NOT NULL DEFAULT 0,
+    next_review_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    last_user_sentence TEXT,
+    last_ai_band_score NUMERIC(3,1),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    PRIMARY KEY (user_id, word_id)
+);
+
+CREATE INDEX idx_srs_user_next_review ON user_srs_progress(user_id, next_review_at);`;
+
+      // 4. APPLICATION STATE
+      let state = {
+        words: JSON.parse(JSON.stringify(DEFAULT_WORDS)),
+        phrasebook: JSON.parse(JSON.stringify(DEFAULT_PHRASEBOOK)),
+        selectedWordId: "accommodate",
+        activeTab: "tab-tier",
+        trackFilter: "all",
+        contextFilter: "all",
+        srsFilter: "all",
+        searchQuery: "",
+        speechRate: 1.0,
+        sessionXp: 0,
+        step1Completed: {},
+        step2SelectedChips: [],
+        step2ShuffledChips: [],
+        phrasebookCategory: "all",
+        phrasebookSearch: "",
+        flashcardFlipped: false
+      };
+
+      // Load saved state from localStorage safely
+      function loadPersistedState() {
+        try {
+          const savedWords = localStorage.getItem("lexiflow_pro_words_v2");
+          if (savedWords) {
+            const parsed = JSON.parse(savedWords);
+            if (Array.isArray(parsed) && parsed.length >= 10) {
+              state.words = parsed;
+            }
+          }
+          const savedPb = localStorage.getItem("lexiflow_pro_pb_v2");
+          if (savedPb) {
+            const parsedPb = JSON.parse(savedPb);
+            if (Array.isArray(parsedPb) && parsedPb.length > 0) {
+              state.phrasebook = parsedPb;
+            }
+          }
+          const savedTheme = localStorage.getItem("lexiflow_pro_theme");
+          if (savedTheme === "dark") {
+            document.documentElement.classList.add("dark");
+          }
+        } catch (e) {
+          // Ignore storage restrictions in sandboxed environments
+        }
+      }
+
+      function savePersistedState() {
+        try {
+          localStorage.setItem("lexiflow_pro_words_v2", JSON.stringify(state.words));
+          localStorage.setItem("lexiflow_pro_pb_v2", JSON.stringify(state.phrasebook));
+        } catch (e) {}
+      }
+
+      // Helper: Toast Notification
+      function showToast(message, type = "info") {
+        const container = document.getElementById("toastContainer");
+        if (!container) return;
+        const toast = document.createElement("div");
+        const colorClasses = type === "success"
+          ? "bg-emerald-600 text-white"
+          : type === "warning"
+          ? "bg-amber-500 text-white"
+          : "bg-slate-900 dark:bg-white text-white dark:text-slate-900";
+        toast.className = `px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold flex items-center gap-2 transition-all duration-300 ${colorClasses}`;
+        toast.textContent = message;
+        container.appendChild(toast);
+        setTimeout(() => {
+          toast.style.opacity = "0";
+          setTimeout(() => toast.remove(), 300);
+        }, 2400);
+      }
+
+      // Helper: Copy text to clipboard
+      function copyTextToClipboard(text, label) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(() => {
+            showToast(`Đã sao chép: ${label}`, "success");
+          }).catch(() => fallbackCopy(text, label));
+        } else {
+          fallbackCopy(text, label);
+        }
+      }
+
+      function fallbackCopy(text, label) {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+          document.execCommand("copy");
+          showToast(`Đã sao chép: ${label}`, "success");
+        } catch (err) {
+          showToast("Không thể sao chép tự động", "warning");
+        }
+        ta.remove();
+      }
+
+      // Helper: Speech Synthesis (US / UK)
+      function speakText(text, lang = "en-US") {
+        if (!("speechSynthesis" in window)) {
+          showToast("Trình duyệt không hỗ trợ Web Speech API", "warning");
+          return;
+        }
+        try {
+          window.speechSynthesis.cancel();
+          const utter = new SpeechSynthesisUtterance(text);
+          utter.lang = lang;
+          utter.rate = state.speechRate;
+          window.speechSynthesis.speak(utter);
+          showToast(`🔊 Đang phát âm (${lang === "en-GB" ? "UK" : "US"} · ${state.speechRate}x): "${text.slice(0, 38)}${text.length > 38 ? '...' : ''}"`);
+        } catch (e) {
+          showToast("Không thể phát âm thanh lúc này", "warning");
+        }
+      }
+
+      // Get currently selected word object
+      function getCurrentWord() {
+        return state.words.find(w => w.id === state.selectedWordId) || state.words[0];
+      }
+
+      // Get filtered words for sidebar
+      function getFilteredWords() {
+        return state.words.filter(item => {
+          if (state.srsFilter !== "all" && item.srsStatus !== state.srsFilter) {
+            return false;
+          }
+          if (state.searchQuery.trim() !== "") {
+            const q = state.searchQuery.toLowerCase().trim();
+            const inWord = item.word.toLowerCase().includes(q);
+            const inVi = item.meaningVi.toLowerCase().includes(q);
+            const inChunks = Object.values(item.contexts).some(c =>
+              c.chunk.toLowerCase().includes(q) || c.chunkVi.toLowerCase().includes(q)
+            );
+            if (!inWord && !inVi && !inChunks) return false;
+          }
+          return true;
+        });
+      }
+
+      // Update Global Header & Sidebar SRS Counters
+      function renderSrsCounters() {
+        const total = state.words.length;
+        const countReview = state.words.filter(w => w.srsStatus === "review").length;
+        const countLearning = state.words.filter(w => w.srsStatus === "learning").length;
+        const countMastered = state.words.filter(w => w.srsStatus === "mastered").length;
+
+        document.getElementById("masteredHeaderCount").textContent = `${countMastered}/${total}`;
+        document.getElementById("srsDueHeaderCount").textContent = countReview;
+        document.getElementById("countAllWords").textContent = total;
+
+        document.getElementById("barCountReview").textContent = countReview;
+        document.getElementById("barCountLearning").textContent = countLearning;
+        document.getElementById("barCountMastered").textContent = countMastered;
+
+        document.getElementById("barSegReview").style.width = `${(countReview / total) * 100}%`;
+        document.getElementById("barSegLearning").style.width = `${(countLearning / total) * 100}%`;
+        document.getElementById("barSegMastered").style.width = `${(countMastered / total) * 100}%`;
+      }
+
+      // Render Left Sidebar Word List
+      function renderSidebarWordList() {
+        const container = document.getElementById("wordListContainer");
+        const filtered = getFilteredWords();
+
+        if (filtered.length === 0) {
+          container.innerHTML = `
+            <div class="p-8 text-center space-y-2">
+              <div class="text-2xl">🔍</div>
+              <p class="text-xs font-semibold text-slate-600 dark:text-slate-300">Không tìm thấy từ vựng phù hợp</p>
+              <button id="btnResetFiltersEmpty" type="button" class="text-xs font-bold text-brand-600 dark:text-brand-400 underline">Xóa bộ lọc tìm kiếm</button>
+            </div>
+          `;
+          const btnReset = document.getElementById("btnResetFiltersEmpty");
+          if (btnReset) {
+            btnReset.addEventListener("click", () => {
+              state.searchQuery = "";
+              state.srsFilter = "all";
+              document.getElementById("inputSearchWord").value = "";
+              document.getElementById("selectSrsFilter").value = "all";
+              renderAll();
+            });
+          }
+          return;
+        }
+
+        const statusMeta = {
+          review: { label: "Cần ôn", cls: "bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300 border-rose-200 dark:border-rose-800" },
+          learning: { label: "Đang học", cls: "bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300 border-amber-200 dark:border-amber-800" },
+          mastered: { label: "Đã thuộc", cls: "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800" }
+        };
+
+        const activeCtxKey = state.contextFilter !== "all" ? state.contextFilter : (state.trackFilter !== "all" ? state.trackFilter : "workplace");
+
+        container.innerHTML = filtered.map((item, idx) => {
+          const isSelected = item.id === state.selectedWordId;
+          const st = statusMeta[item.srsStatus] || statusMeta.review;
+          const previewChunk = item.contexts[activeCtxKey] ? item.contexts[activeCtxKey].chunk : item.contexts.workplace.chunk;
+          return `
+            <button type="button" data-word-id="${item.id}" class="word-sidebar-item w-full text-left p-3.5 transition flex flex-col gap-1.5 ${isSelected ? 'bg-brand-50/90 dark:bg-brand-950/50 border-l-4 border-brand-600' : 'hover:bg-slate-50 dark:hover:bg-slate-800/50'}">
+              <div class="flex items-center justify-between gap-2">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="text-[11px] font-mono font-bold text-slate-400">${idx + 1}.</span>
+                  <span class="font-extrabold text-sm text-slate-900 dark:text-white truncate">${item.word}</span>
+                  <span class="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">${item.pos}</span>
+                </div>
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full border flex-shrink-0 ${st.cls}">${st.label}</span>
+              </div>
+              <p class="text-xs text-slate-600 dark:text-slate-300 line-clamp-1">${item.meaningVi}</p>
+              <div class="flex items-center justify-between text-[11px] text-brand-600 dark:text-brand-400 font-medium pt-0.5">
+                <span class="truncate">↳ ${previewChunk}</span>
+                <span class="text-[10px] font-mono text-slate-400 ml-2 flex-shrink-0">${item.cefr}</span>
+              </div>
+            </button>
+          `;
+        }).join("");
+
+        container.querySelectorAll(".word-sidebar-item").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.selectedWordId = btn.getAttribute("data-word-id");
+            initPracticeStep2ForCurrentWord();
+            renderAll();
+          });
+        });
+      }
+
+      // Highlight target chunk inside sentence
+      function highlightSentence(sentence, chunkWord) {
+        const root = chunkWord.split(" ")[0].replace(/[^a-zA-Z]/g, "");
+        if (!root) return sentence;
+        const regex = new RegExp(`(${root}[a-zA-Z]*)`, "gi");
+        return sentence.replace(regex, `<mark class="bg-brand-100 dark:bg-brand-900/80 text-brand-800 dark:text-brand-200 font-bold px-1 rounded">$1</mark>`);
+      }
+
+      // Render Tab 1: 3-Tier View
+      function renderTab1ThreeTier() {
+        const w = getCurrentWord();
+        const currentIndex = state.words.findIndex(item => item.id === w.id);
+        document.getElementById("wordIndexIndicator").textContent = `${currentIndex + 1} / ${state.words.length}`;
+
+        document.getElementById("t1WordTitle").textContent = w.word;
+        document.getElementById("t1PosBadge").textContent = w.pos;
+        document.getElementById("t1CefrBadge").textContent = `CEFR ${w.cefr}`;
+        document.getElementById("t1IpaUs").textContent = w.ipaUs;
+        document.getElementById("t1IpaUk").textContent = w.ipaUk;
+        document.getElementById("t1MeaningVi").textContent = w.meaningVi;
+        document.getElementById("t1MeaningEn").textContent = w.meaningEn;
+        document.getElementById("t1TipTrap").textContent = w.trapTip;
+        document.getElementById("t1NextReviewText").textContent = `EF: ${w.ef.toFixed(1)} · Ôn: ${w.intervalText}`;
+
+        const srsBadge = document.getElementById("t1SrsBadge");
+        if (w.srsStatus === "review") {
+          srsBadge.textContent = "🔴 Cần ôn";
+          srsBadge.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-100 text-rose-700 dark:bg-rose-950/80 dark:text-rose-300";
+        } else if (w.srsStatus === "learning") {
+          srsBadge.textContent = "🟡 Đang học";
+          srsBadge.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-950/80 dark:text-amber-300";
+        } else {
+          srsBadge.textContent = "🟢 Đã thuộc";
+          srsBadge.className = "px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300";
+        }
+
+        // Word Family
+        const famContainer = document.getElementById("t1WordFamilyContainer");
+        famContainer.innerHTML = (w.family || []).map(f =>
+          `<span class="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-xs border border-slate-200/60 dark:border-slate-700">${f}</span>`
+        ).join("");
+
+        // Determine context highlight filter
+        const activeCtx = state.contextFilter !== "all" ? state.contextFilter : (state.trackFilter !== "all" ? state.trackFilter : "all");
+        const ctxOrder = ["toeic", "ielts", "workplace", "daily"];
+
+        const ctxStyleMap = {
+          toeic: { icon: "💼", border: "border-indigo-200 dark:border-indigo-800/80", bg: "bg-indigo-50/40 dark:bg-indigo-950/20", tag: "bg-indigo-100 text-indigo-800 dark:bg-indigo-900/70 dark:text-indigo-200" },
+          ielts: { icon: "🎓", border: "border-violet-200 dark:border-violet-800/80", bg: "bg-violet-50/40 dark:bg-violet-950/20", tag: "bg-violet-100 text-violet-800 dark:bg-violet-900/70 dark:text-violet-200" },
+          workplace: { icon: "🏢", border: "border-emerald-200 dark:border-emerald-800/80", bg: "bg-emerald-50/40 dark:bg-emerald-950/20", tag: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/70 dark:text-emerald-200" },
+          daily: { icon: "☕", border: "border-amber-200 dark:border-amber-800/80", bg: "bg-amber-50/40 dark:bg-amber-950/20", tag: "bg-amber-100 text-amber-800 dark:bg-amber-900/70 dark:text-amber-200" }
+        };
+
+        // Render Tier 2: Chunks Grid
+        const t2Grid = document.getElementById("t2ChunksGrid");
+        t2Grid.innerHTML = ctxOrder.map(key => {
+          const c = w.contexts[key];
+          const st = ctxStyleMap[key];
+          const isFocused = activeCtx === "all" || activeCtx === key;
+          return `
+            <div class="p-4 rounded-xl border transition ${st.border} ${st.bg} ${isFocused ? 'ring-1 ring-brand-500/30 opacity-100' : 'opacity-60 hover:opacity-100'} flex flex-col justify-between gap-3">
+              <div class="space-y-2">
+                <div class="flex items-center justify-between gap-2">
+                  <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold ${st.tag}">${st.icon} ${c.label}</span>
+                  <span class="text-[11px] text-slate-500 dark:text-slate-400 font-medium">${c.register}</span>
+                </div>
+                <div class="font-extrabold text-base text-slate-900 dark:text-white tracking-tight">
+                  “${c.chunk}”
+                </div>
+                <p class="text-xs text-slate-600 dark:text-slate-300 font-medium">→ ${c.chunkVi}</p>
+              </div>
+              <div class="flex items-center justify-between pt-2 border-t border-slate-200/60 dark:border-slate-800">
+                <button type="button" data-speak-chunk="${c.chunk}" class="btn-speak-chunk inline-flex items-center gap-1 text-xs font-bold text-brand-600 dark:text-brand-400 hover:underline">
+                  🔊 Nghe cụm từ
+                </button>
+                <button type="button" data-copy-chunk="${c.chunk}" class="btn-copy-chunk text-xs font-semibold text-slate-500 hover:text-slate-800 dark:hover:text-white">
+                  📋 Copy cụm
+                </button>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        t2Grid.querySelectorAll(".btn-speak-chunk").forEach(btn => {
+          btn.addEventListener("click", () => speakText(btn.getAttribute("data-speak-chunk"), "en-US"));
+        });
+        t2Grid.querySelectorAll(".btn-copy-chunk").forEach(btn => {
+          btn.addEventListener("click", () => copyTextToClipboard(btn.getAttribute("data-copy-chunk"), "Cụm Collocation"));
+        });
+
+        // Render Tier 3: Full Sentences List
+        const t3List = document.getElementById("t3SentencesList");
+        const visibleKeys = activeCtx === "all" ? ctxOrder : [activeCtx, ...ctxOrder.filter(k => k !== activeCtx)];
+        t3List.innerHTML = visibleKeys.map(key => {
+          const c = w.contexts[key];
+          const st = ctxStyleMap[key];
+          return `
+            <div class="p-4 sm:p-5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/40 space-y-2.5">
+              <div class="flex flex-wrap items-center justify-between gap-2">
+                <div class="flex items-center gap-2">
+                  <span class="px-2.5 py-0.5 rounded-md text-xs font-bold ${st.tag}">${st.icon} ${c.label}</span>
+                  <span class="text-xs font-mono text-slate-500 dark:text-slate-400">Chunk: <strong>${c.chunk}</strong></span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button type="button" data-speak-sent="${c.sentence.replace(/"/g, '&quot;')}" class="btn-speak-sent px-2.5 py-1 rounded-lg bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold transition">
+                    🔊 Phát âm cả câu
+                  </button>
+                  <button type="button" data-copy-sent="${c.sentence.replace(/"/g, '&quot;')}" class="btn-copy-sent px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-xs font-semibold hover:bg-slate-100 transition">
+                    📋 Copy câu này
+                  </button>
+                </div>
+              </div>
+              <p class="text-sm sm:text-base font-semibold text-slate-900 dark:text-white leading-relaxed">
+                ${highlightSentence(c.sentence, w.word)}
+              </p>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 italic">
+                “${c.sentenceVi}”
+              </p>
+              <div class="text-[11px] font-medium text-emerald-700 dark:text-emerald-300 bg-emerald-50/80 dark:bg-emerald-950/40 px-3 py-1.5 rounded-lg border border-emerald-200/60 dark:border-emerald-800/60">
+                🎯 <strong>Điểm ăn điểm:</strong> ${c.note}
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        t3List.querySelectorAll(".btn-speak-sent").forEach(btn => {
+          btn.addEventListener("click", () => speakText(btn.getAttribute("data-speak-sent"), "en-US"));
+        });
+        t3List.querySelectorAll(".btn-copy-sent").forEach(btn => {
+          btn.addEventListener("click", () => copyTextToClipboard(btn.getAttribute("data-copy-sent"), "Câu mẫu"));
+        });
+      }
+
+      // Render Tab 2: 4-Context Matrix (Context Chameleon)
+      function renderTab2Matrix() {
+        const w = getCurrentWord();
+        document.getElementById("matrixWordHighlight").textContent = w.word;
+
+        const ctxOrder = [
+          { key: "toeic", icon: "💼", title: "1. TOEIC (Thương mại & Dịch vụ)", formality: "85%", barColor: "bg-indigo-600" },
+          { key: "ielts", icon: "🎓", title: "2. IELTS Academic (Học thuật Band 7.5+)", formality: "95%", barColor: "bg-violet-600" },
+          { key: "workplace", icon: "🏢", title: "3. Giao tiếp Công sở (Email & Họp hành)", formality: "80%", barColor: "bg-emerald-600" },
+          { key: "daily", icon: "☕", title: "4. Giao tiếp Đời thường (Nhà hàng & Du lịch)", formality: "45%", barColor: "bg-amber-500" }
+        ];
+
+        const grid = document.getElementById("matrixFourGrid");
+        grid.innerHTML = ctxOrder.map(item => {
+          const c = w.contexts[item.key];
+          return `
+            <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex flex-col justify-between gap-4">
+              <div class="space-y-3">
+                <div class="flex items-center justify-between gap-2">
+                  <h3 class="font-extrabold text-sm sm:text-base text-slate-900 dark:text-white">${item.icon} ${item.title}</h3>
+                  <button type="button" data-matrix-speak="${c.sentence.replace(/"/g, '&quot;')}" class="btn-matrix-speak p-1.5 rounded-lg bg-brand-50 dark:bg-brand-950 text-brand-600 dark:text-brand-300 text-xs font-bold hover:bg-brand-100">🔊 Nghe</button>
+                </div>
+                <!-- Formality Meter -->
+                <div class="space-y-1">
+                  <div class="flex justify-between text-[11px] text-slate-500">
+                    <span>Sắc thái: <strong>${c.register}</strong></span>
+                    <span>Độ trang trọng: ${item.formality}</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div class="${item.barColor} h-full rounded-full" style="width: ${item.formality}"></div>
+                  </div>
+                </div>
+                <!-- Chunk Box -->
+                <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                  <div class="text-[10px] font-bold uppercase text-slate-400">Cụm Collocation chuẩn</div>
+                  <div class="font-extrabold text-sm text-brand-600 dark:text-brand-400 mt-0.5">${c.chunk}</div>
+                  <div class="text-xs text-slate-500 dark:text-slate-400">${c.chunkVi}</div>
+                </div>
+                <!-- Full Sentence -->
+                <div class="space-y-1">
+                  <p class="text-xs sm:text-sm font-semibold text-slate-800 dark:text-slate-200 leading-relaxed">“${c.sentence}”</p>
+                  <p class="text-xs text-slate-500 dark:text-slate-400 italic">${c.sentenceVi}</p>
+                </div>
+              </div>
+              <div class="text-[11px] text-slate-600 dark:text-slate-300 pt-2 border-t border-slate-200/70 dark:border-slate-700/70">
+                💡 <strong>Ghi chú ứng dụng:</strong> ${c.note}
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        grid.querySelectorAll(".btn-matrix-speak").forEach(btn => {
+          btn.addEventListener("click", () => speakText(btn.getAttribute("data-matrix-speak"), "en-US"));
+        });
+
+        // Summary Comparison Table for all words
+        const tbody = document.getElementById("matrixSummaryTableBody");
+        tbody.innerHTML = state.words.map(item => `
+          <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition cursor-pointer matrix-row-select ${item.id === w.id ? 'bg-brand-50/70 dark:bg-brand-950/30 font-semibold' : ''}" data-word-id="${item.id}">
+            <td class="p-3 font-extrabold text-brand-600 dark:text-brand-400 whitespace-nowrap">${item.word}</td>
+            <td class="p-3 text-slate-700 dark:text-slate-300">${item.contexts.toeic.chunk}</td>
+            <td class="p-3 text-slate-700 dark:text-slate-300">${item.contexts.ielts.chunk}</td>
+            <td class="p-3 text-slate-700 dark:text-slate-300">${item.contexts.workplace.chunk}</td>
+            <td class="p-3 text-slate-700 dark:text-slate-300">${item.contexts.daily.chunk}</td>
+          </tr>
+        `).join("");
+
+        tbody.querySelectorAll(".matrix-row-select").forEach(row => {
+          row.addEventListener("click", () => {
+            state.selectedWordId = row.getAttribute("data-word-id");
+            initPracticeStep2ForCurrentWord();
+            renderAll();
+          });
+        });
+      }
+
+      // Initialize Step 2 Shuffled Chips for Current Word
+      function initPracticeStep2ForCurrentWord() {
+        const w = getCurrentWord();
+        const correctTokens = w.chunkPuzzle.targetChunk.split(" ");
+        const allTokens = [...correctTokens, ...(w.chunkPuzzle.distractors || [])];
+        // Deterministic shuffle + random salt
+        state.step2SelectedChips = [];
+        state.step2ShuffledChips = allTokens
+          .map((text, idx) => ({ id: `chip-${idx}-${text}`, text, used: false }))
+          .sort(() => Math.random() - 0.5);
+      }
+
+      // Render Tab 3: Active Recall Practice Room
+      function renderTab3Practice() {
+        const w = getCurrentWord();
+        document.getElementById("practiceTargetWord").textContent = w.word;
+        document.getElementById("practiceSessionScore").textContent = `${state.sessionXp} XP`;
+
+        // Step 1: Multiple Choice
+        document.getElementById("step1PromptText").textContent = w.quiz.question;
+        const step1Done = state.step1Completed[w.id];
+        const step1Badge = document.getElementById("step1StatusBadge");
+        if (step1Done) {
+          step1Badge.textContent = "✓ Đã hoàn thành";
+          step1Badge.className = "text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/80 dark:text-emerald-300";
+        } else {
+          step1Badge.textContent = "Chọn đáp án đúng";
+          step1Badge.className = "text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400";
+        }
+
+        const optGrid = document.getElementById("step1OptionsGrid");
+        const fb1 = document.getElementById("step1FeedbackBox");
+        fb1.classList.add("hidden");
+
+        optGrid.innerHTML = w.quiz.options.map(opt => `
+          <button type="button" data-quiz-opt="${opt}" class="quiz-opt-btn p-3.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-800/60 hover:border-brand-500 text-left font-bold text-sm text-slate-800 dark:text-slate-200 transition flex items-center justify-between">
+            <span>${opt}</span>
+            <span class="text-xs text-slate-400">Chọn →</span>
+          </button>
+        `).join("");
+
+        optGrid.querySelectorAll(".quiz-opt-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const chosen = btn.getAttribute("data-quiz-opt");
+            fb1.classList.remove("hidden");
+            if (chosen === w.quiz.answer) {
+              if (!state.step1Completed[w.id]) {
+                state.step1Completed[w.id] = true;
+                state.sessionXp += 15;
+                document.getElementById("practiceSessionScore").textContent = `${state.sessionXp} XP`;
+              }
+              fb1.className = "p-4 rounded-xl text-xs sm:text-sm font-medium bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200";
+              fb1.innerHTML = `✅ <strong>Chính xác (+15 XP)!</strong> ${w.quiz.explanation}`;
+              speakText(w.quiz.answer, "en-US");
+            } else {
+              fb1.className = "p-4 rounded-xl text-xs sm:text-sm font-medium bg-rose-50 dark:bg-rose-950/50 border border-rose-200 dark:border-rose-800 text-rose-800 dark:text-rose-200";
+              fb1.innerHTML = `❌ <strong>Chưa chính xác.</strong> Hãy chú ý ngữ cảnh câu. Gợi ý: ${w.quiz.explanation}`;
+            }
+          });
+        });
+
+        // Step 2: Collocation Chunking Puzzle
+        document.getElementById("step2TargetMeaning").textContent = `Nghĩa mục tiêu: “${w.chunkPuzzle.meaningVi}”`;
+        renderStep2ChipsUI();
+
+        // Step 3: Suggested Chunks & Sentence Builder
+        const step3Chunks = document.getElementById("step3SuggestedChunks");
+        step3Chunks.innerHTML = Object.values(w.contexts).map(c =>
+          `<button type="button" data-insert-chunk="${c.chunk}" class="btn-insert-chunk px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 hover:bg-brand-50 dark:hover:bg-brand-950 text-brand-600 dark:text-brand-400 font-mono text-xs border border-slate-200 dark:border-slate-700 transition">+ ${c.chunk}</button>`
+        ).join("");
+
+        step3Chunks.querySelectorAll(".btn-insert-chunk").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const ta = document.getElementById("inputUserSentence");
+            const chunk = btn.getAttribute("data-insert-chunk");
+            ta.value = (ta.value.trim() ? ta.value.trim() + " " : "") + chunk + " ";
+            ta.focus();
+            updateSentenceWordCount();
+          });
+        });
+      }
+
+      function renderStep2ChipsUI() {
+        const selectedZone = document.getElementById("step2SelectedZone");
+        const availableZone = document.getElementById("step2AvailableZone");
+
+        if (state.step2SelectedChips.length === 0) {
+          selectedZone.innerHTML = `<span class="text-xs text-slate-400 select-none">Nhấn vào các mảnh từ bên dưới theo đúng thứ tự để tạo cụm Collocation chuẩn...</span>`;
+        } else {
+          selectedZone.innerHTML = state.step2SelectedChips.map((chip, idx) => `
+            <button type="button" data-remove-idx="${idx}" class="px-3 py-1.5 rounded-xl bg-violet-600 text-white font-bold text-xs shadow-sm hover:bg-rose-600 transition">
+              ${chip.text} ✕
+            </button>
+          `).join("");
+          selectedZone.querySelectorAll("button").forEach(btn => {
+            btn.addEventListener("click", () => {
+              const rIdx = parseInt(btn.getAttribute("data-remove-idx"), 10);
+              const removed = state.step2SelectedChips.splice(rIdx, 1)[0];
+              const orig = state.step2ShuffledChips.find(c => c.id === removed.id);
+              if (orig) orig.used = false;
+              renderStep2ChipsUI();
+            });
+          });
+        }
+
+        availableZone.innerHTML = state.step2ShuffledChips.map(chip => `
+          <button type="button" data-chip-id="${chip.id}" ${chip.used ? 'disabled' : ''} class="px-3 py-1.5 rounded-xl text-xs font-bold border transition ${chip.used ? 'opacity-30 bg-slate-100 dark:bg-slate-800 border-slate-200 cursor-not-allowed' : 'bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 hover:border-violet-500 text-slate-800 dark:text-slate-100 shadow-sm'}">
+            ${chip.text}
+          </button>
+        `).join("");
+
+        availableZone.querySelectorAll("button:not([disabled])").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const cId = btn.getAttribute("data-chip-id");
+            const found = state.step2ShuffledChips.find(c => c.id === cId);
+            if (found && !found.used) {
+              found.used = true;
+              state.step2SelectedChips.push(found);
+              renderStep2ChipsUI();
+            }
+          });
+        });
+      }
+
+      function updateSentenceWordCount() {
+        const val = document.getElementById("inputUserSentence").value.trim();
+        const words = val ? val.split(/\s+/).length : 0;
+        document.getElementById("sentenceWordCount").textContent = `${words} từ`;
+      }
+
+      // Render Tab 4: Workplace Phrasebook
+      function renderTab4Phrasebook() {
+        const grid = document.getElementById("phrasebookGrid");
+        const savedCount = state.phrasebook.filter(p => p.saved).length;
+        document.getElementById("pbSavedTabCount").textContent = savedCount;
+        document.getElementById("savedPhraseCountBadge").textContent = `${state.phrasebook.length} mẫu`;
+
+        const filtered = state.phrasebook.filter(item => {
+          if (state.phrasebookCategory === "saved" && !item.saved) return false;
+          if (state.phrasebookCategory !== "all" && state.phrasebookCategory !== "saved" && item.category !== state.phrasebookCategory) return false;
+          if (state.phrasebookSearch.trim() !== "") {
+            const q = state.phrasebookSearch.toLowerCase().trim();
+            if (!item.situation.toLowerCase().includes(q) && !item.sentenceEn.toLowerCase().includes(q) && !item.chunk.toLowerCase().includes(q)) {
+              return false;
+            }
+          }
+          return true;
+        });
+
+        if (filtered.length === 0) {
+          grid.innerHTML = `<div class="col-span-2 p-8 text-center text-xs text-slate-500">Không có mẫu câu nào trong danh mục này.</div>`;
+          return;
+        }
+
+        grid.innerHTML = filtered.map(item => `
+          <div class="p-5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/60 dark:bg-slate-800/40 flex flex-col justify-between gap-3">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between gap-2">
+                <span class="px-2.5 py-0.5 rounded-md text-[11px] font-bold bg-brand-50 dark:bg-brand-950 text-brand-700 dark:text-brand-300">${item.categoryLabel}</span>
+                <div class="flex items-center gap-2">
+                  <span class="text-[11px] text-slate-400">${item.tone}</span>
+                  <button type="button" data-pb-star="${item.id}" class="btn-pb-star text-base ${item.saved ? 'text-amber-400' : 'text-slate-300 hover:text-amber-400'} transition" title="Lưu vào mục Yêu thích">★</button>
+                </div>
+              </div>
+              <div class="text-xs font-bold text-slate-700 dark:text-slate-300">📌 Tình huống: ${item.situation}</div>
+              <div class="text-xs font-mono text-violet-600 dark:text-violet-400">Collocation: <strong>${item.chunk}</strong></div>
+              <p class="text-sm font-bold text-slate-900 dark:text-white leading-relaxed pt-1">“${item.sentenceEn}”</p>
+              <p class="text-xs text-slate-500 dark:text-slate-400 italic">${item.sentenceVi}</p>
+            </div>
+            <div class="flex items-center justify-end gap-2 pt-2 border-t border-slate-200/70 dark:border-slate-700/70">
+              <button type="button" data-pb-speak="${item.sentenceEn.replace(/"/g, '&quot;')}" class="btn-pb-speak px-3 py-1 rounded-lg bg-slate-200/80 dark:bg-slate-700 text-xs font-bold hover:bg-brand-600 hover:text-white transition">🔊 Nghe</button>
+              <button type="button" data-pb-copy="${item.sentenceEn.replace(/"/g, '&quot;')}" class="btn-pb-copy px-3 py-1 rounded-lg bg-brand-600 text-white text-xs font-bold hover:bg-brand-700 transition">📋 Copy câu này</button>
+            </div>
+          </div>
+        `).join("");
+
+        grid.querySelectorAll(".btn-pb-star").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const id = btn.getAttribute("data-pb-star");
+            const target = state.phrasebook.find(p => p.id === id);
+            if (target) {
+              target.saved = !target.saved;
+              savePersistedState();
+              renderTab4Phrasebook();
+              showToast(target.saved ? "★ Đã lưu vào Sổ tay yêu thích" : "Đã bỏ lưu mẫu câu");
+            }
+          });
+        });
+
+        grid.querySelectorAll(".btn-pb-speak").forEach(btn => {
+          btn.addEventListener("click", () => speakText(btn.getAttribute("data-pb-speak"), "en-US"));
+        });
+
+        grid.querySelectorAll(".btn-pb-copy").forEach(btn => {
+          btn.addEventListener("click", () => copyTextToClipboard(btn.getAttribute("data-pb-copy"), "Mẫu câu công sở"));
+        });
+      }
+
+      // Render Tab 5: Database & Technical Spec
+      function renderTab5Database() {
+        const w = getCurrentWord();
+        document.getElementById("sqlCodeBlock").textContent = SQL_SCHEMA_TEXT;
+        document.getElementById("jsonCurrentWordLabel").textContent = `GET /api/v1/words/${w.id}`;
+        const apiPayload = {
+          status: "success",
+          algorithm: "SM-2 Spaced Repetition",
+          data: w
+        };
+        document.getElementById("jsonCodeBlock").textContent = JSON.stringify(apiPayload, null, 2);
+      }
+
+      // Render Flashcard 3D Modal Content
+      function renderFlashcardModalContent() {
+        const w = getCurrentWord();
+        const box = document.getElementById("flashcardBody");
+        if (!state.flashcardFlipped) {
+          box.innerHTML = `
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span>MẶT TRƯỚC · TẦNG 1 (CORE WORD)</span>
+              <span>Nhấn vào thẻ để lật ↻</span>
+            </div>
+            <div class="my-auto text-center space-y-2 py-6">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-brand-100 text-brand-700 dark:bg-brand-900 dark:text-brand-200">${w.pos} · CEFR ${w.cefr}</span>
+              <h4 class="text-3xl font-extrabold text-slate-900 dark:text-white">${w.word}</h4>
+              <p class="font-mono text-sm text-slate-500">${w.ipaUs}</p>
+            </div>
+            <div class="text-center text-xs text-brand-600 dark:text-brand-400 font-semibold">Bạn còn nhớ nghĩa và 4 cụm Collocation của từ này không?</div>
+          `;
+        } else {
+          box.innerHTML = `
+            <div class="flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-bold">
+              <span>MẶT SAU · 3 TẦNG HOÀN CHỈNH</span>
+              <span>Nhấn để quay lại ↺</span>
+            </div>
+            <div class="space-y-2 my-auto py-2">
+              <div class="text-sm font-extrabold text-slate-900 dark:text-white">${w.word}: <span class="font-normal">${w.meaningVi}</span></div>
+              <div class="grid grid-cols-1 gap-1.5 text-xs pt-1">
+                <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">💼 <strong>TOEIC:</strong> ${w.contexts.toeic.chunk}</div>
+                <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">🎓 <strong>IELTS:</strong> ${w.contexts.ielts.chunk}</div>
+                <div class="p-2 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700">🏢 <strong>Công sở:</strong> ${w.contexts.workplace.chunk}</div>
+              </div>
+              <p class="text-xs italic text-slate-600 dark:text-slate-300 pt-1">“${w.contexts.workplace.sentence}”</p>
+            </div>
+            <div class="text-[11px] text-slate-400 text-right">Thuật toán SM-2 · EF: ${w.ef.toFixed(1)}</div>
+          `;
+        }
+      }
+
+      // Main Render Coordinator
+      function renderAll() {
+        renderSrsCounters();
+        renderSidebarWordList();
+        renderTab1ThreeTier();
+        renderTab2Matrix();
+        renderTab3Practice();
+        renderTab4Phrasebook();
+        renderTab5Database();
+      }
+
+      // Switch Main Tabs
+      function switchTab(tabId) {
+        state.activeTab = tabId;
+        document.querySelectorAll(".tab-panel").forEach(panel => {
+          panel.classList.toggle("hidden", panel.id !== tabId);
+        });
+        document.querySelectorAll(".main-tab-btn").forEach(btn => {
+          const isTarget = btn.getAttribute("data-tab") === tabId;
+          if (isTarget) {
+            btn.className = "main-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold whitespace-nowrap transition bg-brand-600 text-white shadow-sm";
+          } else {
+            btn.className = "main-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800";
+          }
+        });
+      }
+
+      // Initialize Event Listeners
+      function bindEvents() {
+        // Navigation Tabs
+        document.querySelectorAll(".main-tab-btn").forEach(btn => {
+          btn.addEventListener("click", () => switchTab(btn.getAttribute("data-tab")));
+        });
+
+        // Theme Toggle
+        document.getElementById("btnThemeToggle").addEventListener("click", () => {
+          const isDark = document.documentElement.classList.toggle("dark");
+          try {
+            localStorage.setItem("lexiflow_pro_theme", isDark ? "dark" : "light");
+          } catch (e) {}
+          showToast(isDark ? "🌙 Đã bật giao diện Tối (Dark Mode)" : "☀️ Đã bật giao diện Sáng (Light Mode)");
+        });
+
+        // Track Selector
+        document.getElementById("selectTrack").addEventListener("change", (e) => {
+          state.trackFilter = e.target.value;
+          renderAll();
+          showToast(`Đã chuyển trọng tâm lộ trình: ${e.target.options[e.target.selectedIndex].text}`);
+        });
+
+        // Header SRS Due Button
+        document.getElementById("btnHeaderSrsDue").addEventListener("click", () => {
+          state.srsFilter = state.srsFilter === "review" ? "all" : "review";
+          document.getElementById("selectSrsFilter").value = state.srsFilter;
+          const firstDue = state.words.find(w => w.srsStatus === "review");
+          if (firstDue) state.selectedWordId = firstDue.id;
+          renderAll();
+          showToast(state.srsFilter === "review" ? "Đang lọc các từ Cần ôn SRS hôm nay" : "Hiển thị tất cả từ vựng");
+        });
+
+        // Search Input
+        const searchInput = document.getElementById("inputSearchWord");
+        const clearBtn = document.getElementById("btnClearSearch");
+        searchInput.addEventListener("input", (e) => {
+          state.searchQuery = e.target.value;
+          clearBtn.classList.toggle("hidden", !state.searchQuery);
+          renderSidebarWordList();
+        });
+        clearBtn.addEventListener("click", () => {
+          state.searchQuery = "";
+          searchInput.value = "";
+          clearBtn.classList.add("hidden");
+          renderSidebarWordList();
+        });
+
+        // Context Filter Buttons
+        document.querySelectorAll(".ctx-filter-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.contextFilter = btn.getAttribute("data-ctx");
+            document.querySelectorAll(".ctx-filter-btn").forEach(b => {
+              const active = b.getAttribute("data-ctx") === state.contextFilter;
+              b.className = active
+                ? "ctx-filter-btn px-2.5 py-1 rounded-lg text-xs font-bold bg-slate-900 text-white dark:bg-white dark:text-slate-900 transition"
+                : "ctx-filter-btn px-2.5 py-1 rounded-lg text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 transition";
+            });
+            renderAll();
+          });
+        });
+
+        // SRS Status Select
+        document.getElementById("selectSrsFilter").addEventListener("change", (e) => {
+          state.srsFilter = e.target.value;
+          renderSidebarWordList();
+        });
+
+        // Speech Rate Toggle
+        document.getElementById("btnSpeechRate").addEventListener("click", (e) => {
+          state.speechRate = state.speechRate === 1.0 ? 0.8 : 1.0;
+          e.currentTarget.textContent = `🔊 ${state.speechRate.toFixed(1)}x`;
+          showToast(`Tốc độ phát âm: ${state.speechRate === 1.0 ? 'Chuẩn (1.0x)' : 'Chậm rõ âm (0.8x)'}`);
+        });
+
+        // Reset Default Progress
+        document.getElementById("btnResetProgress").addEventListener("click", () => {
+          state.words = JSON.parse(JSON.stringify(DEFAULT_WORDS));
+          state.selectedWordId = "accommodate";
+          savePersistedState();
+          initPracticeStep2ForCurrentWord();
+          renderAll();
+          showToast("Đã khôi phục dữ liệu mặc định", "info");
+        });
+
+        // Tier 1 Prev / Next Word
+        document.getElementById("btnPrevWord").addEventListener("click", () => {
+          const idx = state.words.findIndex(w => w.id === state.selectedWordId);
+          const prevIdx = (idx - 1 + state.words.length) % state.words.length;
+          state.selectedWordId = state.words[prevIdx].id;
+          initPracticeStep2ForCurrentWord();
+          renderAll();
+        });
+        document.getElementById("btnNextWord").addEventListener("click", () => {
+          const idx = state.words.findIndex(w => w.id === state.selectedWordId);
+          const nextIdx = (idx + 1) % state.words.length;
+          state.selectedWordId = state.words[nextIdx].id;
+          initPracticeStep2ForCurrentWord();
+          renderAll();
+        });
+
+        // Tier 1 Speak US / UK
+        document.getElementById("btnSpeakWordUs").addEventListener("click", () => speakText(getCurrentWord().word, "en-US"));
+        document.getElementById("btnSpeakWordUk").addEventListener("click", () => speakText(getCurrentWord().word, "en-GB"));
+
+        // Tier 1 SM-2 Grading Buttons
+        document.querySelectorAll(".srs-grade-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            const newStatus = btn.getAttribute("data-srs-grade");
+            const newInterval = btn.getAttribute("data-interval");
+            const w = getCurrentWord();
+            w.srsStatus = newStatus;
+            w.intervalText = newInterval;
+            if (newStatus === "mastered") w.ef = Math.min(3.0, w.ef + 0.15);
+            if (newStatus === "review") w.ef = Math.max(1.3, w.ef - 0.2);
+            savePersistedState();
+            renderAll();
+            showToast(`Đã cập nhật SRS cho "${w.word}" → Ôn lại sau ${newInterval}`, "success");
+          });
+        });
+
+        // Go to Practice from Tier 3
+        document.getElementById("btnGoToPracticeFromTier3").addEventListener("click", () => {
+          switchTab("tab-practice");
+          document.getElementById("inputUserSentence").focus();
+        });
+
+        // Matrix Speak All 4 Contexts
+        document.getElementById("btnSpeakAllMatrix").addEventListener("click", () => {
+          const w = getCurrentWord();
+          const combined = `${w.word}. TOEIC: ${w.contexts.toeic.chunk}. IELTS: ${w.contexts.ielts.chunk}. Workplace: ${w.contexts.workplace.chunk}.`;
+          speakText(combined, "en-US");
+        });
+
+        // Practice Room Controls
+        document.getElementById("btnPracticeListenWord").addEventListener("click", () => speakText(getCurrentWord().word, "en-US"));
+        document.getElementById("btnStep2SpeakChunk").addEventListener("click", () => speakText(getCurrentWord().chunkPuzzle.targetChunk, "en-US"));
+        document.getElementById("btnStep2Reset").addEventListener("click", () => {
+          initPracticeStep2ForCurrentWord();
+          document.getElementById("step2FeedbackBox").classList.add("hidden");
+          renderStep2ChipsUI();
+        });
+
+        document.getElementById("btnStep2Check").addEventListener("click", () => {
+          const w = getCurrentWord();
+          const userChunk = state.step2SelectedChips.map(c => c.text).join(" ").trim();
+          const fb2 = document.getElementById("step2FeedbackBox");
+          fb2.classList.remove("hidden");
+          if (userChunk.toLowerCase() === w.chunkPuzzle.targetChunk.toLowerCase()) {
+            state.sessionXp += 20;
+            document.getElementById("practiceSessionScore").textContent = `${state.sessionXp} XP`;
+            fb2.className = "p-4 rounded-xl text-xs sm:text-sm font-medium bg-emerald-50 dark:bg-emerald-950/50 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-200";
+            fb2.innerHTML = `🎉 <strong>Ghép cụm hoàn hảo (+20 XP)!</strong> Cụm chuẩn: <em>“${w.chunkPuzzle.targetChunk}”</em> (${w.chunkPuzzle.meaningVi}).`;
+            speakText(w.chunkPuzzle.targetChunk, "en-US");
+          } else {
+            fb2.className = "p-4 rounded-xl text-xs sm:text-sm font-medium bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200";
+            fb2.innerHTML = `💡 <strong>Chưa khớp hoàn toàn.</strong> Cụm bạn ghép: <em>“${userChunk || '(trống)'}”</em>. Đáp án chuẩn: <strong>“${w.chunkPuzzle.targetChunk}”</strong>.`;
+          }
+        });
+
+        // Step 3 Sentence Builder & Smart Grader
+        const sentenceInput = document.getElementById("inputUserSentence");
+        sentenceInput.addEventListener("input", updateSentenceWordCount);
+
+        document.getElementById("btnFillSentenceTemplate").addEventListener("click", () => {
+          const w = getCurrentWord();
+          sentenceInput.value = w.sentenceStarter + w.contexts.workplace.chunk + ".";
+          sentenceInput.focus();
+          updateSentenceWordCount();
+        });
+
+        document.getElementById("btnClearSentence").addEventListener("click", () => {
+          sentenceInput.value = "";
+          updateSentenceWordCount();
+          document.getElementById("aiFeedbackResultCard").classList.add("hidden");
+        });
+
+        document.getElementById("btnGradeSentence").addEventListener("click", () => {
+          const w = getCurrentWord();
+          const raw = sentenceInput.value.trim();
+          const card = document.getElementById("aiFeedbackResultCard");
+          card.classList.remove("hidden");
+
+          if (raw.length < 10) {
+            card.innerHTML = `<div class="text-xs sm:text-sm font-semibold text-rose-600 dark:text-rose-400">⚠️ Câu còn quá ngắn. Hãy viết một câu hoàn chỉnh (ít nhất 6–8 từ) có chứa từ <strong>"${w.word}"</strong> để hệ thống phân tích chi tiết nhé!</div>`;
+            return;
+          }
+
+          const root = w.word.split(" ")[0].toLowerCase();
+          const hasTargetWord = raw.toLowerCase().includes(root);
+          const wordCount = raw.split(/\s+/).length;
+          const matchedContext = Object.values(w.contexts).find(c =>
+            raw.toLowerCase().includes(c.chunk.split(" ").slice(0, 2).join(" ").toLowerCase())
+          );
+
+          let score = 6.5;
+          if (hasTargetWord) score += 1.5;
+          if (matchedContext) score += 0.8;
+          if (wordCount >= 10) score += 0.7;
+          if (/^[A-Z]/.test(raw) && /[.!?]$/.test(raw)) score += 0.3;
+          score = Math.min(9.5, Math.round(score * 10) / 10);
+
+          if (hasTargetWord) {
+            w.srsStatus = "mastered";
+            w.intervalText = "7 ngày";
+            state.sessionXp += 35;
+            savePersistedState();
+            renderSrsCounters();
+            renderSidebarWordList();
+          }
+
+          card.innerHTML = `
+            <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-indigo-200/70 dark:border-indigo-800">
+              <div class="flex items-center gap-2">
+                <span class="px-3 py-1 rounded-xl bg-brand-600 text-white font-extrabold text-sm">Điểm AI: ${score} / 10</span>
+                <span class="text-xs font-bold text-emerald-600 dark:text-emerald-400">${hasTargetWord ? '✓ Đã dùng đúng từ mục tiêu (+35 XP · Chuyển sang Đã thuộc)' : '⚠️ Chưa thấy xuất hiện từ gốc "' + w.word + '"'}</span>
+              </div>
+              <span class="text-xs font-mono text-slate-500">Độ dài: ${wordCount} từ</span>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                <div class="font-bold text-slate-700 dark:text-slate-200">✅ Điểm mạnh trong câu của bạn:</div>
+                <p class="text-slate-600 dark:text-slate-400">${hasTargetWord ? `Sử dụng đúng từ cốt lõi <strong>${w.word}</strong> trong ngữ cảnh phù hợp.` : 'Cấu trúc câu có chủ-vị rõ ràng.'} ${matchedContext ? `Kết hợp tốt với cụm Collocation chuẩn.` : ''}</p>
+              </div>
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 space-y-1">
+                <div class="font-bold text-slate-700 dark:text-slate-200">🚀 Gợi ý nâng cấp lên C1 / Band 8.0:</div>
+                <p class="text-slate-600 dark:text-slate-400">Kết hợp thêm trạng từ chỉ mức độ hoặc mệnh đề chỉ mục đích (<em>in order to / so that</em>) để câu văn chặt chẽ hơn.</p>
+              </div>
+            </div>
+            <div class="space-y-2 pt-1">
+              <div class="text-xs font-extrabold uppercase tracking-wider text-brand-700 dark:text-brand-300">3 Phiên bản nâng cấp chuẩn bản xứ cho bạn tham khảo:</div>
+              <div class="p-3 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-xs space-y-1.5">
+                <div>🏢 <strong>Chuẩn Email Công sở:</strong> “${w.contexts.workplace.sentence}”</div>
+                <div>🎓 <strong>Chuẩn IELTS Academic:</strong> “${w.contexts.ielts.sentence}”</div>
+                <div>💼 <strong>Chuẩn TOEIC Thương mại:</strong> “${w.contexts.toeic.sentence}”</div>
+              </div>
+            </div>
+          `;
+        });
+
+        // Tab 4 Phrasebook Filter & Search
+        document.querySelectorAll(".pb-cat-btn").forEach(btn => {
+          btn.addEventListener("click", () => {
+            state.phrasebookCategory = btn.getAttribute("data-pb-cat");
+            document.querySelectorAll(".pb-cat-btn").forEach(b => {
+              const active = b.getAttribute("data-pb-cat") === state.phrasebookCategory;
+              b.className = active
+                ? "pb-cat-btn px-3 py-1.5 rounded-xl text-xs font-bold bg-brand-600 text-white transition"
+                : "pb-cat-btn px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 transition";
+            });
+            renderTab4Phrasebook();
+          });
+        });
+
+        document.getElementById("inputSearchPhrasebook").addEventListener("input", (e) => {
+          state.phrasebookSearch = e.target.value;
+          renderTab4Phrasebook();
+        });
+
+        // Tab 5 SQL / JSON Copy & Export
+        document.getElementById("btnCopySqlSchema").addEventListener("click", () => {
+          copyTextToClipboard(SQL_SCHEMA_TEXT, "PostgreSQL Schema DDL");
+        });
+        document.getElementById("btnCopyJsonPayload").addEventListener("click", () => {
+          const payload = document.getElementById("jsonCodeBlock").textContent;
+          copyTextToClipboard(payload, `JSON của từ "${getCurrentWord().word}"`);
+        });
+        document.getElementById("btnDownloadJsonFile").addEventListener("click", () => {
+          const blob = new Blob([JSON.stringify(state.words, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement("a");
+          a.href = url;
+          a.download = "lexiflow_vocabulary_3tier.json";
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          URL.revokeObjectURL(url);
+          showToast("Đã tải xuống tệp lexiflow_vocabulary_3tier.json", "success");
+        });
+
+        // Modal 1: 3D Flashcard
+        const modalFc = document.getElementById("modalFlashcard");
+        document.getElementById("btnOpenFlashcardModal").addEventListener("click", () => {
+          state.flashcardFlipped = false;
+          renderFlashcardModalContent();
+          modalFc.classList.remove("hidden");
+        });
+        document.getElementById("btnCloseFlashcardModal").addEventListener("click", () => modalFc.classList.add("hidden"));
+        document.getElementById("flashcardBody").addEventListener("click", () => {
+          state.flashcardFlipped = !state.flashcardFlipped;
+          renderFlashcardModalContent();
+        });
+        document.getElementById("btnFlashcardFlip").addEventListener("click", () => {
+          state.flashcardFlipped = !state.flashcardFlipped;
+          renderFlashcardModalContent();
+        });
+        document.getElementById("btnFlashcardMarkMastered").addEventListener("click", () => {
+          const w = getCurrentWord();
+          w.srsStatus = "mastered";
+          w.intervalText = "7 ngày";
+          savePersistedState();
+          const idx = state.words.findIndex(item => item.id === w.id);
+          state.selectedWordId = state.words[(idx + 1) % state.words.length].id;
+          state.flashcardFlipped = false;
+          renderAll();
+          renderFlashcardModalContent();
+          showToast(`Đã thuộc "${w.word}"! Chuyển sang từ tiếp theo.`, "success");
+        });
+
+        // Modal 2: Add Custom Word
+        const modalAdd = document.getElementById("modalAddWord");
+        document.getElementById("btnOpenAddWordModal").addEventListener("click", () => modalAdd.classList.remove("hidden"));
+        document.getElementById("btnCloseAddWordModal").addEventListener("click", () => modalAdd.classList.add("hidden"));
+        document.getElementById("btnCancelAddWord").addEventListener("click", () => modalAdd.classList.add("hidden"));
+
+        document.getElementById("formAddWord").addEventListener("submit", (e) => {
+          e.preventDefault();
+          const wordText = document.getElementById("newWordText").value.trim();
+          const [pos, cefr] = document.getElementById("newWordPos").value.split("|");
+          const ipa = document.getElementById("newWordIpa").value.trim() || "/ˈwɜːd/";
+          const meaningVi = document.getElementById("newWordMeaningVi").value.trim();
+          const chunk = document.getElementById("newWordChunk").value.trim();
+          const sentence = document.getElementById("newWordSentence").value.trim();
+
+          if (!wordText || !meaningVi || !chunk || !sentence) return;
+
+          const slug = wordText.toLowerCase().replace(/[^a-z0-9]+/g, "-");
+          const newEntry = {
+            id: slug + "-" + Date.now().toString().slice(-3),
+            word: wordText,
+            ipaUs: ipa,
+            ipaUk: ipa,
+            pos: pos,
+            cefr: cefr,
+            srsStatus: "review",
+            ef: 2.5,
+            intervalText: "Hôm nay",
+            meaningVi: meaningVi,
+            meaningEn: `Core business and academic vocabulary: ${wordText}.`,
+            trapTip: `Hãy luôn học "${wordText}" đi kèm cụm "${chunk}" để đặt câu chuẩn xác.`,
+            family: [wordText],
+            contexts: {
+              toeic: { label: "TOEIC Thương mại", badgeColor: "indigo", chunk: chunk, chunkVi: meaningVi, register: "Thương mại", sentence: sentence, sentenceVi: meaningVi, note: "Từ vựng người dùng tự thêm." },
+              ielts: { label: "IELTS Academic (Band 7.5+)", badgeColor: "violet", chunk: chunk, chunkVi: meaningVi, register: "Học thuật", sentence: sentence, sentenceVi: meaningVi, note: "Từ vựng người dùng tự thêm." },
+              workplace: { label: "Giao tiếp Công sở", badgeColor: "emerald", chunk: chunk, chunkVi: meaningVi, register: "Công sở", sentence: sentence, sentenceVi: meaningVi, note: "Từ vựng người dùng tự thêm." },
+              daily: { label: "Giao tiếp Đời thường", badgeColor: "amber", chunk: chunk, chunkVi: meaningVi, register: "Đời thường", sentence: sentence, sentenceVi: meaningVi, note: "Từ vựng người dùng tự thêm." }
+            },
+            quiz: {
+              question: sentence.replace(new RegExp(wordText.split(" ")[0], "i"), "__________"),
+              options: [wordText, "accommodate", "mitigate", "expedite"],
+              answer: wordText,
+              explanation: `Cụm chuẩn: "${chunk}" (${meaningVi}).`
+            },
+            chunkPuzzle: {
+              targetChunk: chunk,
+              meaningVi: meaningVi,
+              distractors: ["with", "on"]
+            },
+            sentenceStarter: `In our upcoming project, we will use ${chunk} to `
+          };
+
+          state.words.unshift(newEntry);
+          state.selectedWordId = newEntry.id;
+          savePersistedState();
+          initPracticeStep2ForCurrentWord();
+          renderAll();
+          modalAdd.classList.add("hidden");
+          e.target.reset();
+          showToast(`Đã thêm từ mới "${wordText}" vào danh sách học!`, "success");
+        });
+
+        // Mobile Sidebar Scroll Toggle
+        document.getElementById("btnMobileSidebar").addEventListener("click", () => {
+          document.getElementById("vocabSidebar").scrollIntoView({ behavior: "smooth" });
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener("keydown", (e) => {
+          const activeTag = document.activeElement ? document.activeElement.tagName.toLowerCase() : "";
+          if (activeTag === "input" || activeTag === "textarea" || activeTag === "select") return;
+
+          if (e.key === "/") {
+            e.preventDefault();
+            document.getElementById("inputSearchWord").focus();
+          } else if (e.key.toLowerCase() === "s") {
+            e.preventDefault();
+            speakText(getCurrentWord().word, "en-US");
+          } else if (e.key === "ArrowDown") {
+            e.preventDefault();
+            document.getElementById("btnNextWord").click();
+          } else if (e.key === "ArrowUp") {
+            e.preventDefault();
+            document.getElementById("btnPrevWord").click();
+          }
+        });
+      }
+
+      // Boot App
+      loadPersistedState();
+      initPracticeStep2ForCurrentWord();
+      bindEvents();
+      renderAll();
+    })();
+  </script>
+</body>
+</html>

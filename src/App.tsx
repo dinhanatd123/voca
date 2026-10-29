@@ -1,463 +1,635 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
-import React, { useState, useEffect, useCallback } from 'react';
-import { Clock } from 'lucide-react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
-  ActiveTab,
-  PersonaMode,
-  ContextDomain,
-  SrsStatus,
   VocabItem,
   PhrasebookItem,
-  PhrasebookCategory,
+  ActiveTab,
+  TrackFilter,
+  ContextDomain,
+  SrsStatus,
 } from './types';
-import {
-  INITIAL_VOCAB_DATA,
-  INITIAL_PHRASEBOOK_DATA,
-  PERSONA_META,
-} from './data/vocabData';
+import { DEFAULT_WORDS, DEFAULT_PHRASEBOOK } from './data/vocabData';
 import {
   filterVocabItems,
   computeSrsStats,
-  getSrsIntervalLabel,
+  applySm2Grade,
+  createCustomWordEntry,
 } from './utils/vocabLogic';
+import { speakEnglishText } from './utils/speech';
+import { VocabSidebar } from './components/VocabSidebar';
 import { LearnThreeTiersTab } from './components/LearnThreeTiersTab';
 import { MatrixTab } from './components/MatrixTab';
 import { PracticeThreeStepsTab } from './components/PracticeThreeStepsTab';
 import { PhrasebookTab } from './components/PhrasebookTab';
 import { ArchitectureTab } from './components/ArchitectureTab';
-import { SrsModal } from './components/SrsModal';
+import { FlashcardModal, AddWordModal } from './components/Modals';
 
-interface ToastMessage {
-  id: number;
-  message: string;
-  type: 'info' | 'success' | 'warning';
-}
-
-const SRS_STORAGE_KEY = 'lexiflow_srs_state_v1';
+const STORAGE_KEY_WORDS = 'lexiflow_pro_words_v2';
+const STORAGE_KEY_PB = 'lexiflow_pro_pb_v2';
+const STORAGE_KEY_THEME = 'lexiflow_pro_theme';
 
 export default function App() {
-  const [vocabList, setVocabList] = useState<VocabItem[]>(() => {
+  const [wordsData, setWordsData] = useState<VocabItem[]>(() => {
     try {
-      const saved = localStorage.getItem(SRS_STORAGE_KEY);
+      const saved = localStorage.getItem(STORAGE_KEY_WORDS);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed === 'object') {
-          const validStatuses: SrsStatus[] = ['due', 'learning', 'mastered'];
-          return INITIAL_VOCAB_DATA.map((item) => {
-            const entry = parsed[item.id];
-            if (entry && validStatuses.includes(entry.status)) {
-              return {
-                ...item,
-                srsStatus: entry.status,
-                srsInterval:
-                  typeof entry.interval === 'string' && entry.interval
-                    ? entry.interval
-                    : item.srsInterval,
-              };
-            }
-            return item;
-          });
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].ipaUs) {
+          return parsed;
         }
       }
     } catch {
-      // Ignore storage access errors in sandboxed frames
+      // ignore storage errors
     }
-    return INITIAL_VOCAB_DATA;
+    return JSON.parse(JSON.stringify(DEFAULT_WORDS));
   });
 
-  const [phrasebookList, setPhrasebookList] = useState<PhrasebookItem[]>(
-    INITIAL_PHRASEBOOK_DATA
-  );
+  const [phrasebookData, setPhrasebookData] = useState<PhrasebookItem[]>(() => {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY_PB);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].sentenceEn) {
+          return parsed;
+        }
+      }
+    } catch {
+      // ignore storage errors
+    }
+    return JSON.parse(JSON.stringify(DEFAULT_PHRASEBOOK));
+  });
 
-  const [activeTab, setActiveTab] = useState<ActiveTab>('learn');
-  const [persona, setPersona] = useState<PersonaMode>('all');
+  const [isDark, setIsDark] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem(STORAGE_KEY_THEME) === 'dark';
+    } catch {
+      return false;
+    }
+  });
+
+  const [currentWordId, setCurrentWordId] = useState<string>('accommodate');
   const [contextFilter, setContextFilter] = useState<ContextDomain | 'all'>('all');
-  const [srsFilter, setSrsFilter] = useState<SrsStatus | 'all'>('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedWordId, setSelectedWordId] = useState('accommodate');
-  const [selectedTierDomain, setSelectedTierDomain] = useState<ContextDomain>('office');
-  const [matrixWordId, setMatrixWordId] = useState('accommodate');
-  const [practiceWordId, setPracticeWordId] = useState('accommodate');
-  const [phrasebookCategory, setPhrasebookCategory] =
-    useState<PhrasebookCategory>('all');
-  const [isSrsModalOpen, setIsSrsModalOpen] = useState(false);
-  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [trackFilter, setTrackFilter] = useState<TrackFilter>('all');
+  const [srsFilter, setSrsFilter] = useState<'all' | SrsStatus>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [activeTab, setActiveTab] = useState<ActiveTab>('tab-tier');
+  const [speechRate, setSpeechRate] = useState<number>(1.0);
+  const [sessionXp, setSessionXp] = useState<number>(0);
+  const [step1CompletedMap, setStep1CompletedMap] = useState<Record<string, boolean>>({});
 
-  const showToast = useCallback(
-    (message: string, type: 'info' | 'success' | 'warning' = 'info') => {
-      const id = Date.now() + Math.random();
-      setToasts((prev) => [...prev, { id, message, type }]);
-      setTimeout(() => {
-        setToasts((prev) => prev.filter((t) => t.id !== id));
-      }, 2600);
-    },
-    []
-  );
+  const [isFlashcardOpen, setIsFlashcardOpen] = useState<boolean>(false);
+  const [isAddWordOpen, setIsAddWordOpen] = useState<boolean>(false);
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  const sidebarRef = useRef<HTMLElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const sentenceInputRef = useRef<HTMLTextAreaElement>(null);
+
+  // Sync dark mode class with documentElement
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      try {
+        localStorage.setItem(STORAGE_KEY_THEME, 'dark');
+      } catch {
+        // ignore
+      }
+    } else {
+      document.documentElement.classList.remove('dark');
+      try {
+        localStorage.setItem(STORAGE_KEY_THEME, 'light');
+      } catch {
+        // ignore
+      }
+    }
+  }, [isDark]);
+
+  // Persist wordsData
   useEffect(() => {
     try {
-      const map: Record<string, { status: SrsStatus; interval: string }> = {};
-      vocabList.forEach((item) => {
-        map[item.id] = { status: item.srsStatus, interval: item.srsInterval };
-      });
-      localStorage.setItem(SRS_STORAGE_KEY, JSON.stringify(map));
+      localStorage.setItem(STORAGE_KEY_WORDS, JSON.stringify(wordsData));
     } catch {
-      // Ignore storage errors
+      // ignore
     }
-  }, [vocabList]);
+  }, [wordsData]);
 
-  const speakText = useCallback(
-    (text: string, lang: 'en-US' | 'en-GB' = 'en-US') => {
-      if (typeof window === 'undefined' || !('speechSynthesis' in window)) {
-        showToast('Trình duyệt không hỗ trợ phát âm trực tiếp.', 'warning');
-        return;
-      }
-      try {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(text);
-        utterance.lang = lang;
-        utterance.rate = 0.94;
-        window.speechSynthesis.speak(utterance);
-        showToast(
-          `Đang đọc (${lang}): "${text.slice(0, 42)}${text.length > 42 ? '...' : ''}"`
-        );
-      } catch {
-        showToast('Không thể phát âm thanh lúc này.', 'warning');
-      }
-    },
-    [showToast]
-  );
+  // Persist phrasebookData
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEY_PB, JSON.stringify(phrasebookData));
+    } catch {
+      // ignore
+    }
+  }, [phrasebookData]);
 
-  const copyTextToClipboard = useCallback(
-    (text: string, label = 'nội dung') => {
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard
-          .writeText(text)
-          .then(() => {
-            showToast(`Đã copy ${label} vào bộ nhớ tạm!`, 'success');
-          })
-          .catch(() => {
-            showToast(`Đã copy ${label} vào bộ nhớ tạm!`, 'success');
-          });
-      } else {
-        showToast(`Đã copy ${label} vào bộ nhớ tạm!`, 'success');
-      }
-    },
-    [showToast]
-  );
-
-  const handlePersonaChange = (newPersona: PersonaMode) => {
-    setPersona(newPersona);
-    const info = PERSONA_META[newPersona];
-    setSelectedTierDomain(info.defaultDomain);
-    showToast(`Đã chuyển sang lộ trình: ${info.tag}`);
+  const showToast = (msg: string) => {
+    setToastMessage(msg);
   };
 
-  const handleUpdateSrsStatus = (
+  useEffect(() => {
+    if (!toastMessage) return;
+    const timer = setTimeout(() => setToastMessage(null), 2300);
+    return () => clearTimeout(timer);
+  }, [toastMessage]);
+
+  const filteredWords = useMemo(
+    () => filterVocabItems(wordsData, { srsFilter, searchQuery }),
+    [wordsData, srsFilter, searchQuery]
+  );
+
+  const currentWord = useMemo(
+    () => wordsData.find((w) => w.id === currentWordId) || wordsData[0],
+    [wordsData, currentWordId]
+  );
+
+  const currentIndex = useMemo(
+    () => Math.max(0, wordsData.findIndex((w) => w.id === currentWord.id)),
+    [wordsData, currentWord]
+  );
+
+  const srsStats = useMemo(() => computeSrsStats(wordsData), [wordsData]);
+
+  const handleNavigateWord = (direction: number) => {
+    const idx = wordsData.findIndex((w) => w.id === currentWord.id);
+    const nextIdx = (idx + direction + wordsData.length) % wordsData.length;
+    setCurrentWordId(wordsData[nextIdx].id);
+  };
+
+  const handleSpeak = (text: string, lang: 'en-US' | 'en-GB' = 'en-US') => {
+    speakEnglishText(text, lang, speechRate);
+  };
+
+  const handleCopy = (text: string, label = 'nội dung') => {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast(`Đã sao chép ${label} vào bộ nhớ tạm!`);
+    });
+  };
+
+  // Global keyboard shortcuts matching 1111.html
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+
+      if (e.key === '/') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      } else if (e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        handleSpeak(currentWord.word, 'en-US');
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        handleNavigateWord(1);
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        handleNavigateWord(-1);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [currentWord, speechRate, wordsData]);
+
+  const handleGradeSrs = (
     wordId: string,
-    newStatus: SrsStatus,
-    silent = false
+    status: SrsStatus,
+    intervalText: string
   ) => {
-    setVocabList((prev) =>
-      prev.map((item) =>
-        item.id === wordId
-          ? {
-              ...item,
-              srsStatus: newStatus,
-              srsInterval: getSrsIntervalLabel(newStatus),
-            }
-          : item
+    setWordsData((prev) =>
+      prev.map((w) =>
+        w.id === wordId ? applySm2Grade(w, status, intervalText) : w
       )
     );
-    if (!silent) {
-      const target = vocabList.find((w) => w.id === wordId);
-      showToast(
-        `Đã cập nhật trạng thái SRS cho "${target?.word || wordId}"!`,
-        'success'
-      );
-    }
+    const target = wordsData.find((w) => w.id === wordId) || currentWord;
+    const updated = applySm2Grade(target, status, intervalText);
+    showToast(
+      `Đã cập nhật SRS "${updated.word}": Ôn lại sau ${updated.intervalText} (EF: ${updated.ef})`
+    );
   };
 
-  const handleToggleSavePhrase = (id: string) => {
-    setPhrasebookList((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          const nextSaved = !p.saved;
+  const handleToggleSpeechRate = () => {
+    const nextRate = speechRate === 1.0 ? 0.8 : 1.0;
+    setSpeechRate(nextRate);
+    showToast(
+      `Tốc độ đọc: ${nextRate.toFixed(1)}x (${
+        nextRate === 0.8 ? 'Chậm rõ âm' : 'Tự nhiên'
+      })`
+    );
+  };
+
+  const handleResetProgress = () => {
+    const freshWords = JSON.parse(JSON.stringify(DEFAULT_WORDS));
+    const freshPb = JSON.parse(JSON.stringify(DEFAULT_PHRASEBOOK));
+    setWordsData(freshWords);
+    setPhrasebookData(freshPb);
+    setCurrentWordId('accommodate');
+    setContextFilter('all');
+    setTrackFilter('all');
+    setSrsFilter('all');
+    setSearchQuery('');
+    showToast('Đã khôi phục dữ liệu mặc định!');
+  };
+
+  const handleToggleStarPhrase = (id: string) => {
+    setPhrasebookData((prev) =>
+      prev.map((item) => {
+        if (item.id === id) {
+          const nextSaved = !item.saved;
           showToast(
             nextSaved
-              ? 'Đã lưu vào Sổ tay cá nhân!'
-              : 'Đã bỏ lưu mẫu câu.'
+              ? 'Đã lưu vào Sổ tay cá nhân ⭐'
+              : 'Đã bỏ lưu mẫu câu'
           );
-          return { ...p, saved: nextSaved };
+          return { ...item, saved: nextSaved };
         }
-        return p;
+        return item;
       })
     );
   };
 
-  const filteredVocab = filterVocabItems(vocabList, {
-    persona,
-    srsFilter,
-    searchQuery,
-  });
+  const handleSaveCustomWord = (input: {
+    wordText: string;
+    posCefr: string;
+    ipa: string;
+    meaningVi: string;
+    chunk: string;
+    sentence: string;
+  }) => {
+    const newWord = createCustomWordEntry(input);
+    setWordsData((prev) => [newWord, ...prev]);
+    setCurrentWordId(newWord.id);
+    showToast(`Đã thêm từ "${newWord.word}" vào lộ trình 3 tầng!`);
+  };
 
-  const activeWord =
-    filteredVocab.find((w) => w.id === selectedWordId) ||
-    filteredVocab[0] ||
-    vocabList[0];
+  const handleTrackSelectChange = (val: TrackFilter) => {
+    setTrackFilter(val);
+    setContextFilter(val);
+    const names: Record<TrackFilter, string> = {
+      all: 'Toàn diện 4 ngữ cảnh',
+      toeic: 'Luyện thi TOEIC',
+      ielts: 'Học thuật IELTS',
+      workplace: 'Tiếng Anh Công sở',
+      daily: 'Giao tiếp Đời thường',
+    };
+    showToast(`Đã chuyển sang lộ trình: ${names[val]}`);
+  };
 
-  const srsStats = computeSrsStats(vocabList);
-  const currentPersonaInfo = PERSONA_META[persona];
+  const handleSrsDueBadgeClick = () => {
+    setSrsFilter((prev) => {
+      const next = prev === 'review' ? 'all' : 'review';
+      showToast(
+        next === 'review'
+          ? 'Đang lọc các từ cần ôn tập SRS hôm nay'
+          : 'Hiển thị tất cả từ vựng'
+      );
+      return next;
+    });
+  };
 
-  const navItems: { key: ActiveTab; label: string }[] = [
-    { key: 'learn', label: '1. Học 3 Tầng' },
-    { key: 'matrix', label: '2. Ma Trận 4 Ngữ Cảnh' },
-    { key: 'practice', label: '3. Luyện Tập & AI Chấm Câu' },
-    { key: 'phrasebook', label: '4. Sổ Tay Công Sở' },
-    { key: 'architecture', label: '5. Database & Kiến Trúc' },
-  ];
+  const scrollMobileToSidebar = () => {
+    sidebarRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-900">
-      {/* Toast Notifications */}
-      <div
-        aria-live="polite"
-        className="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"
-      >
-        {toasts.map((t) => {
-          const bgClass =
-            t.type === 'success'
-              ? 'bg-emerald-700'
-              : t.type === 'warning'
-              ? 'bg-amber-600'
-              : 'bg-slate-900';
-          return (
-            <div
-              key={t.id}
-              className={`${bgClass} text-white text-xs font-semibold px-4 py-2.5 rounded-lg shadow-md transition-opacity pointer-events-auto`}
-            >
-              {t.message}
-            </div>
-          );
-        })}
-      </div>
-
-      {/* Top Navigation Bar (Strict 3-Zone Contract) */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-xs border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex items-center justify-between gap-8">
-          {/* Zone 1: Brand Wordmark */}
-          <a
-            href="#top"
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveTab('learn');
-            }}
-            className="text-lg font-extrabold tracking-tight text-slate-900 whitespace-nowrap shrink-0"
-          >
-            LexiFlow
-          </a>
-
-          {/* Zone 2: Primary Navigation Links */}
-          <nav
-            aria-label="Chức năng chính"
-            className="flex items-center gap-5 overflow-x-auto custom-scroll py-0.5"
-          >
-            {navItems.map((tab) => {
-              const isActive = activeTab === tab.key;
-              return (
-                <button
-                  key={tab.key}
-                  type="button"
-                  onClick={() => setActiveTab(tab.key)}
-                  className={`text-xs sm:text-sm font-semibold whitespace-nowrap shrink-0 pb-1 border-b-2 transition-colors ${
-                    isActive
-                      ? 'border-indigo-600 text-indigo-600'
-                      : 'border-transparent text-slate-600 hover:text-slate-900 hover:border-slate-300'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav>
-
-          {/* Zone 3: Single Primary Action */}
-          <div className="flex items-center shrink-0">
+    <div className="bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 antialiased selection:bg-brand-600 selection:text-white min-h-screen flex flex-col transition-colors duration-200">
+      {/* TOP ANNOUNCEMENT / KEYBOARD SHORTCUT BAR */}
+      <div className="bg-slate-900 text-slate-200 text-xs py-2 px-4 border-b border-slate-800">
+        <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-brand-500/20 text-brand-300 border border-brand-400/30">
+              LexiFlow Pro v2.5
+            </span>
+            <span className="font-medium text-slate-300 hidden sm:inline">
+              Phương pháp Học 3 Tầng:{' '}
+              <strong className="text-white">
+                Từ đơn → Cụm Collocation → Câu hoàn chỉnh
+              </strong>{' '}
+              (Tích hợp SRS SM-2 &amp; Lưu trữ tự động)
+            </span>
+          </div>
+          <div className="flex items-center gap-3">
+            <span className="hidden lg:inline text-slate-400">
+              Phím tắt:{' '}
+              <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-200 border border-slate-700">
+                ↑/↓
+              </kbd>{' '}
+              Chuyển từ •{' '}
+              <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-200 border border-slate-700">
+                S
+              </kbd>{' '}
+              Phát âm •{' '}
+              <kbd className="px-1.5 py-0.5 bg-slate-800 rounded text-slate-200 border border-slate-700">
+                /
+              </kbd>{' '}
+              Tìm kiếm
+            </span>
             <button
               type="button"
-              onClick={() => setIsSrsModalOpen(true)}
-              className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-700 text-white px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap shrink-0 transition-colors tabular-nums"
+              onClick={() => setIsFlashcardOpen(true)}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 border border-amber-400/30 font-semibold transition cursor-pointer"
             >
-              <Clock className="w-3.5 h-3.5" />
-              <span>Cần ôn SRS ({srsStats.dueCount})</span>
+              ⚡ Flashcard 3D Nhanh
             </button>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Workspace Control & Persona Bar */}
-      <div className="bg-slate-900 text-white border-b border-slate-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col lg:flex-row lg:items-center justify-between gap-3 text-xs sm:text-sm">
-          <div className="flex flex-wrap items-center gap-2 min-w-0">
-            <span className="font-bold text-indigo-300 whitespace-nowrap">
-              {currentPersonaInfo.tag}
-            </span>
-            <span className="text-slate-500" aria-hidden="true">
-              ·
-            </span>
-            <span className="text-slate-200">{currentPersonaInfo.desc}</span>
+      {/* MAIN HEADER */}
+      <header className="sticky top-0 z-30 bg-white/95 dark:bg-slate-900/95 backdrop-blur border-b border-slate-200 dark:border-slate-800 shadow-xs">
+        <div className="max-w-[1440px] mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+          {/* Brand + Mobile Word Drawer Trigger */}
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={scrollMobileToSidebar}
+              className="lg:hidden p-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+              title="Danh sách từ vựng"
+            >
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M4 6h16M4 12h16M4 18h7"
+                />
+              </svg>
+            </button>
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-600 to-indigo-700 flex items-center justify-center text-white font-extrabold text-lg shadow-sm">
+              LF
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h1 className="text-lg font-extrabold tracking-tight text-slate-900 dark:text-white leading-none">
+                  LexiFlow
+                </h1>
+                <span className="text-[11px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-brand-50 dark:bg-brand-900/50 text-brand-700 dark:text-brand-300 border border-brand-200 dark:border-brand-700">
+                  3-Tier SRS
+                </span>
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                Học 1 từ dùng chuẩn trong TOEIC • IELTS • Công sở • Đời thường
+              </p>
+            </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4 shrink-0">
-            <div className="flex items-center gap-2">
-              <label
-                htmlFor="persona-select"
-                className="text-xs font-medium text-slate-300 whitespace-nowrap"
-              >
-                Chuyển lộ trình:
-              </label>
+          {/* Right Controls: Track Selector + SRS Stats + Add Word + Dark Mode */}
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Learning Track Selector */}
+            <div className="flex items-center bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 px-2 hidden md:inline">
+                Lộ trình:
+              </span>
               <select
-                id="persona-select"
-                aria-label="Chọn đối tượng học"
-                value={persona}
-                onChange={(e) => handlePersonaChange(e.target.value as PersonaMode)}
-                className="bg-slate-800 text-white font-semibold rounded-lg px-2.5 py-1.5 border border-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
+                value={trackFilter}
+                onChange={(e) =>
+                  handleTrackSelectChange(e.target.value as TrackFilter)
+                }
+                aria-label="Lộ trình học"
+                className="bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs font-semibold rounded-lg px-2.5 py-1.5 border border-slate-200 dark:border-slate-700 focus:outline-none focus:ring-2 focus:ring-brand-500 cursor-pointer"
               >
-                <option value="all">Toàn diện (Tất cả mục tiêu)</option>
-                <option value="busy_pro">Người đi làm bận rộn (Micro 5p/ngày)</option>
-                <option value="fresh_grad">Sinh viên mới ra trường (TOEIC + Công sở)</option>
-                <option value="exam_prep">Luyện thi cấp tốc (IELTS 7.0+ & TOEIC 800+)</option>
+                <option value="all">🎯 Toàn diện (4 Ngữ cảnh)</option>
+                <option value="workplace">💼 Người đi làm bận rộn (Công sở)</option>
+                <option value="toeic">📈 Luyện thi TOEIC (Business)</option>
+                <option value="ielts">🎓 Luyện thi IELTS Academic</option>
+                <option value="daily">🗣️ Giao tiếp Đời thường</option>
               </select>
             </div>
 
-            <div className="flex items-center gap-3 text-xs tabular-nums">
-              <span className="text-amber-300 font-semibold whitespace-nowrap">
-                Streak: 7 ngày
-              </span>
-              <span className="text-slate-600" aria-hidden="true">
-                ·
-              </span>
-              <span className="text-slate-200 whitespace-nowrap">
-                Đã thuộc: <strong className="text-white">{srsStats.masteredCount}</strong>/
-                {srsStats.totalCount} chủ điểm
-              </span>
-              <div className="w-20 h-2 bg-slate-800 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-emerald-400 transition-all duration-200"
-                  style={{ width: `${srsStats.masteryPercentage}%` }}
-                />
+            {/* Progress Counters */}
+            <div className="hidden sm:flex items-center gap-2 text-xs">
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-300 font-semibold">
+                <span>🔥 Streak:</span>
+                <strong>7 ngày</strong>
               </div>
+              <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 font-semibold">
+                <span>Đã thuộc:</span>
+                <strong>
+                  {srsStats.masteredCount}/{srsStats.totalCount}
+                </strong>
+              </div>
+              <button
+                type="button"
+                onClick={handleSrsDueBadgeClick}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-rose-700 dark:text-rose-300 font-semibold hover:bg-rose-100 transition cursor-pointer"
+                title="Bấm để lọc các từ cần ôn tập hôm nay"
+              >
+                <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+                <span>Cần ôn SRS ({srsStats.reviewCount})</span>
+              </button>
             </div>
+
+            {/* Add Custom Word Button */}
+            <button
+              type="button"
+              onClick={() => setIsAddWordOpen(true)}
+              className="px-3 py-1.5 rounded-xl bg-brand-600 hover:bg-brand-700 text-white text-xs font-bold shadow-xs transition flex items-center gap-1 cursor-pointer"
+            >
+              <span>+ Thêm từ</span>
+            </button>
+
+            {/* Dark Mode Toggle */}
+            <button
+              type="button"
+              onClick={() => setIsDark((prev) => !prev)}
+              className="p-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700 transition cursor-pointer"
+              title="Chuyển giao diện Sáng / Tối"
+            >
+              {isDark ? '☀️' : '🌙'}
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* Main Content Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 py-6">
-        {activeTab === 'learn' && (
-          <LearnThreeTiersTab
-            filteredVocab={filteredVocab}
-            selectedWord={activeWord}
-            onSelectWord={(id) => setSelectedWordId(id)}
-            contextFilter={contextFilter}
-            onChangeContextFilter={(f) => {
-              setContextFilter(f);
-              if (f !== 'all') setSelectedTierDomain(f);
-            }}
-            selectedTierDomain={selectedTierDomain}
-            onSelectTierDomain={(dom) => {
-              setSelectedTierDomain(dom);
-              if (contextFilter !== 'all') setContextFilter('all');
-            }}
-            searchQuery={searchQuery}
-            onChangeSearchQuery={setSearchQuery}
-            srsFilter={srsFilter}
-            onChangeSrsFilter={setSrsFilter}
-            onResetFilters={() => {
-              setSearchQuery('');
-              setSrsFilter('all');
-              setPersona('all');
-              setContextFilter('all');
-            }}
-            onUpdateSrsStatus={(wordId, st) => handleUpdateSrsStatus(wordId, st)}
-            onSpeak={speakText}
-            onCopy={copyTextToClipboard}
-            onJumpToMatrix={(wordId) => {
-              setMatrixWordId(wordId);
-              setActiveTab('matrix');
-            }}
-            onJumpToPractice={(wordId) => {
-              setPracticeWordId(wordId);
-              setActiveTab('practice');
-            }}
-          />
-        )}
+        {/* NAVIGATION TABS */}
+        <div className="max-w-[1440px] mx-auto px-4 border-t border-slate-100 dark:border-slate-800/80 bg-slate-50/70 dark:bg-slate-900/60">
+          <nav
+            className="flex items-center gap-1 overflow-x-auto py-1.5 no-scrollbar"
+            aria-label="Tabs"
+          >
+            <button
+              type="button"
+              onClick={() => setActiveTab('tab-tier')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'tab-tier'
+                  ? 'bg-brand-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span>1. Học 3 Tầng (Từ → Cụm → Câu)</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('tab-matrix')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'tab-matrix'
+                  ? 'bg-brand-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span>2. Ma Trận "1 Từ – 4 Ngữ Cảnh"</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('tab-practice')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'tab-practice'
+                  ? 'bg-brand-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span>3. Phòng Luyện Tập 3 Bước &amp; AI Chấm Câu</span>
+              <span className="px-1.5 py-0.2 text-[10px] rounded-full bg-amber-400/20 text-amber-600 dark:text-amber-300 font-extrabold">
+                Hot
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('tab-phrasebook')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'tab-phrasebook'
+                  ? 'bg-brand-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span>4. Sổ Tay Công Sở Cấp Tốc</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('tab-database')}
+              className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer ${
+                activeTab === 'tab-database'
+                  ? 'bg-brand-600 text-white shadow-xs'
+                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
+              }`}
+            >
+              <span>5. Thiết Kế Database &amp; Xuất Dữ Liệu</span>
+            </button>
+          </nav>
+        </div>
+      </header>
 
-        {activeTab === 'matrix' && (
-          <MatrixTab
-            vocabList={vocabList}
-            selectedWordId={matrixWordId}
-            onSelectWordId={setMatrixWordId}
-            onSpeak={speakText}
-            onCopy={copyTextToClipboard}
-          />
-        )}
+      {/* MAIN WORKSPACE */}
+      <main className="flex-1 max-w-[1440px] w-full mx-auto px-4 py-5 flex flex-col lg:flex-row gap-6 items-start">
+        {/* LEFT SIDEBAR: WORD EXPLORER */}
+        <VocabSidebar
+          sidebarRef={sidebarRef}
+          searchInputRef={searchInputRef}
+          totalWordsCount={wordsData.length}
+          filteredWords={filteredWords}
+          selectedWordId={currentWord.id}
+          onSelectWord={(id) => setCurrentWordId(id)}
+          searchQuery={searchQuery}
+          onChangeSearchQuery={(q) => setSearchQuery(q)}
+          contextFilter={contextFilter}
+          onChangeContextFilter={(ctx) => {
+            setContextFilter(ctx);
+            setTrackFilter(ctx);
+          }}
+          trackFilter={trackFilter}
+          srsFilter={srsFilter}
+          onChangeSrsFilter={(s) => setSrsFilter(s)}
+          speechRate={speechRate}
+          onToggleSpeechRate={handleToggleSpeechRate}
+          onResetProgress={handleResetProgress}
+          onResetSearchAndFilters={() => {
+            setSearchQuery('');
+            setSrsFilter('all');
+            setContextFilter('all');
+            setTrackFilter('all');
+          }}
+          srsStats={srsStats}
+        />
 
-        {activeTab === 'practice' && (
-          <PracticeThreeStepsTab
-            vocabList={vocabList}
-            practiceWordId={practiceWordId}
-            onSelectPracticeWordId={setPracticeWordId}
-            onUpdateSrsStatus={handleUpdateSrsStatus}
-            onSpeak={speakText}
-            onShowToast={showToast}
-          />
-        )}
+        {/* RIGHT CONTENT AREA */}
+        <section className="flex-1 min-w-0 w-full space-y-5">
+          {activeTab === 'tab-tier' && (
+            <LearnThreeTiersTab
+              currentWord={currentWord}
+              currentIndex={currentIndex}
+              totalWords={wordsData.length}
+              contextFilter={contextFilter}
+              trackFilter={trackFilter}
+              onPrevWord={() => handleNavigateWord(-1)}
+              onNextWord={() => handleNavigateWord(1)}
+              onSpeak={handleSpeak}
+              onCopy={handleCopy}
+              onGradeSrs={(status, intervalText) =>
+                handleGradeSrs(currentWord.id, status, intervalText)
+              }
+              onGoToPractice={() => setActiveTab('tab-practice')}
+            />
+          )}
 
-        {activeTab === 'phrasebook' && (
-          <PhrasebookTab
-            phrasebookList={phrasebookList}
-            activeCategory={phrasebookCategory}
-            onSelectCategory={setPhrasebookCategory}
-            onToggleSave={handleToggleSavePhrase}
-            onSpeak={speakText}
-            onCopy={copyTextToClipboard}
-          />
-        )}
+          {activeTab === 'tab-matrix' && (
+            <MatrixTab
+              words={wordsData}
+              currentWord={currentWord}
+              onSelectWord={(id) => setCurrentWordId(id)}
+              onSpeak={handleSpeak}
+            />
+          )}
 
-        {activeTab === 'architecture' && (
-          <ArchitectureTab onCopy={copyTextToClipboard} />
-        )}
+          {activeTab === 'tab-practice' && (
+            <PracticeThreeStepsTab
+              currentWord={currentWord}
+              sentenceInputRef={sentenceInputRef}
+              sessionXp={sessionXp}
+              onAddSessionXp={(xp) => setSessionXp((prev) => prev + xp)}
+              step1CompletedMap={step1CompletedMap}
+              onMarkStep1Done={(wordId) =>
+                setStep1CompletedMap((prev) => ({ ...prev, [wordId]: true }))
+              }
+              onMarkWordMastered={(wordId) =>
+                handleGradeSrs(wordId, 'mastered', '7 ngày')
+              }
+              onSpeak={handleSpeak}
+            />
+          )}
+
+          {activeTab === 'tab-phrasebook' && (
+            <PhrasebookTab
+              phrasebookItems={phrasebookData}
+              onToggleStar={handleToggleStarPhrase}
+              onSpeak={handleSpeak}
+              onCopy={handleCopy}
+            />
+          )}
+
+          {activeTab === 'tab-database' && (
+            <ArchitectureTab
+              currentWord={currentWord}
+              allWords={wordsData}
+              phrasebook={phrasebookData}
+              onToast={showToast}
+            />
+          )}
+        </section>
       </main>
 
-      {/* SRS Schedule Modal */}
-      <SrsModal
-        isOpen={isSrsModalOpen}
-        vocabList={vocabList}
-        onClose={() => setIsSrsModalOpen(false)}
-        onStartDuePractice={() => {
-          setIsSrsModalOpen(false);
-          const firstDue =
-            vocabList.find((w) => w.srsStatus === 'due') || vocabList[0];
-          setPracticeWordId(firstDue.id);
-          setActiveTab('practice');
-        }}
+      {/* MODALS */}
+      <FlashcardModal
+        isOpen={isFlashcardOpen}
+        words={wordsData}
+        onSpeak={handleSpeak}
+        onClose={() => setIsFlashcardOpen(false)}
+        onGradeWord={handleGradeSrs}
       />
 
-      {/* Footer */}
-      <footer className="bg-white border-t border-slate-200 mt-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
-          <div>
-            <strong>LexiFlow</strong> — Học từ vựng 3 tầng (Từ đơn → Cụm Collocation → Câu hoàn
-            chỉnh) chuẩn TOEIC, IELTS & Công sở.
-          </div>
-          <div>Hỗ trợ phát âm trực tiếp (Web Speech API) · Lưu tiến độ SRS tự động</div>
+      <AddWordModal
+        isOpen={isAddWordOpen}
+        onClose={() => setIsAddWordOpen(false)}
+        onSaveWord={handleSaveCustomWord}
+      />
+
+      {/* TOAST NOTIFICATION */}
+      {toastMessage && (
+        <div className="fixed bottom-5 right-5 z-50 bg-slate-900 dark:bg-white text-white dark:text-slate-900 px-4 py-2.5 rounded-xl shadow-lg text-xs font-bold flex items-center gap-2 transition-all">
+          <span>✅</span>
+          <span>{toastMessage}</span>
         </div>
-      </footer>
+      )}
     </div>
   );
 }

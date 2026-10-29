@@ -1,67 +1,85 @@
-export type ContextDomain = 'toeic' | 'ielts' | 'office' | 'daily';
+export type ContextDomain = 'toeic' | 'ielts' | 'workplace' | 'daily';
 
-export type PersonaMode = 'all' | 'busy_pro' | 'fresh_grad' | 'exam_prep';
+export type TrackFilter = 'all' | ContextDomain;
 
-export type SrsStatus = 'due' | 'learning' | 'mastered';
+export type SrsStatus = 'review' | 'learning' | 'mastered';
 
-export type ActiveTab = 'learn' | 'matrix' | 'practice' | 'phrasebook' | 'architecture';
+export type ActiveTab =
+  | 'tab-tier'
+  | 'tab-matrix'
+  | 'tab-practice'
+  | 'tab-phrasebook'
+  | 'tab-database';
 
-export type PhrasebookCategory = 'all' | 'email' | 'meeting' | 'negotiation' | 'saved';
+export type PhrasebookCategory =
+  | 'all'
+  | 'email'
+  | 'slack'
+  | 'meeting'
+  | 'deadline'
+  | 'saved';
 
 export interface ContextDetail {
-  badge: string;
+  label: string;
+  badgeColor: 'indigo' | 'violet' | 'emerald' | 'amber';
   chunk: string;
-  chunkMeaning: string;
-  sentenceEn: string;
+  chunkVi: string;
+  register: string;
+  sentence: string;
   sentenceVi: string;
-  grammarNote: string;
+  note: string;
 }
 
-export interface PracticeConfig {
-  step1Question: string;
-  step1Choices: string[];
-  step2TargetMeaning: string;
-  step2Words: string[];
-  step2Distractors: string[];
-  step3TargetChunk: string;
-  step3Template: string;
+export interface QuizConfig {
+  question: string;
+  options: string[];
+  answer: string;
+  explanation: string;
+}
+
+export interface ChunkPuzzleConfig {
+  targetChunk: string;
+  meaningVi: string;
+  distractors: string[];
 }
 
 export interface VocabItem {
   id: string;
   word: string;
+  ipaUs: string;
+  ipaUk: string;
   pos: string;
-  ipa: string;
   cefr: string;
-  coreMeaning: string;
-  memoryTip: string;
   srsStatus: SrsStatus;
-  srsInterval: string;
-  personas: PersonaMode[];
+  ef: number;
+  intervalText: string;
+  meaningVi: string;
+  meaningEn: string;
+  trapTip: string;
+  family: string[];
   contexts: Record<ContextDomain, ContextDetail>;
-  practice: PracticeConfig;
+  quiz: QuizConfig;
+  chunkPuzzle: ChunkPuzzleConfig;
+  sentenceStarter: string;
 }
 
 export interface PhrasebookItem {
   id: string;
-  category: 'email' | 'meeting' | 'negotiation';
-  catLabel: string;
+  category: 'email' | 'slack' | 'meeting' | 'deadline';
+  categoryLabel: string;
   situation: string;
-  keyChunk: string;
+  chunk: string;
   sentenceEn: string;
   sentenceVi: string;
   tone: string;
   saved: boolean;
 }
 
-export interface SentenceEvaluationResult {
+export interface SentenceGradeResult {
   score: number;
-  hasWord: boolean;
-  hasChunk: boolean;
+  hasTargetWord: boolean;
+  matchedContext: boolean;
   wordCount: number;
-  chunkFeedback: string;
-  structureFeedback: string;
-  upgradedSentence: string;
-  modeLabel: string;
-  source: 'ai' | 'local';
+  strengthNote: string;
+  upgradeTip: string;
 }

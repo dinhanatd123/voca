@@ -32,12 +32,15 @@ jobs:
           cp public/static-bundle.css _site/public/static-bundle.css
           cp public/static-bundle.js _site/public/static-bundle.js
           touch _site/.nojekyll
-          cat << 'EOF' > _site/index.html
+          cat << EOF > _site/index.html
           <!doctype html>
           <html lang="vi">
             <head>
               <meta charset="UTF-8" />
               <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+              <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+              <meta http-equiv="Pragma" content="no-cache" />
+              <meta http-equiv="Expires" content="0" />
               <title>LexiFlow — Học Từ Vựng 3 Tầng (Từ → Cụm → Câu) Chuẩn TOEIC, IELTS & Công Sở</title>
               <meta name="description" content="Ứng dụng học từ vựng tiếng Anh 3 tầng (Từ đơn → Cụm Collocation → Câu hoàn chỉnh) chuẩn TOEIC, IELTS, Giao tiếp Công sở & Đời thường kèm SRS và AI Chấm Câu." />
               <meta property="og:title" content="LexiFlow — Học Từ Vựng 3 Tầng (Từ → Cụm → Câu)" />
@@ -47,14 +50,24 @@ jobs:
               <link rel="preconnect" href="https://fonts.googleapis.com">
               <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
               <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-              <link rel="stylesheet" href="./static-bundle.css" />
+              <link rel="stylesheet" href="./static-bundle.css?v=${GITHUB_RUN_ID}" />
+              <script>
+                if ('serviceWorker' in navigator) {
+                  navigator.serviceWorker.getRegistrations().then(function (registrations) {
+                    for (var i = 0; i < registrations.length; i++) {
+                      registrations[i].unregister();
+                    }
+                  }).catch(function () {});
+                }
+              </script>
             </head>
             <body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-600 selection:text-white">
               <div id="root"></div>
-              <script type="module" src="./static-bundle.js"></script>
+              <script type="module" src="./static-bundle.js?v=${GITHUB_RUN_ID}"></script>
             </body>
           </html>
           EOF
+          cp _site/index.html _site/404.html
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
