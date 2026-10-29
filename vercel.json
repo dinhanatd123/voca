@@ -1,0 +1,6 @@
+{
+  "framework": null,
+  "installCommand": "echo 'Skipping npm install - using prebuilt static bundle'",
+  "buildCommand": "mkdir -p dist/public && cp public/static-bundle.css dist/static-bundle.css && cp public/static-bundle.js dist/static-bundle.js && cp public/static-bundle.css dist/public/static-bundle.css && cp public/static-bundle.js dist/public/static-bundle.js && cp public/static-index.html dist/index.html",
+  "outputDirectory": "dist"
+}
