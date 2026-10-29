@@ -45,15 +45,23 @@ export default function App() {
       const saved = localStorage.getItem(SRS_STORAGE_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        return INITIAL_VOCAB_DATA.map((item) =>
-          parsed[item.id]
-            ? {
+        if (parsed && typeof parsed === 'object') {
+          const validStatuses: SrsStatus[] = ['due', 'learning', 'mastered'];
+          return INITIAL_VOCAB_DATA.map((item) => {
+            const entry = parsed[item.id];
+            if (entry && validStatuses.includes(entry.status)) {
+              return {
                 ...item,
-                srsStatus: parsed[item.id].status,
-                srsInterval: parsed[item.id].interval,
-              }
-            : item
-        );
+                srsStatus: entry.status,
+                srsInterval:
+                  typeof entry.interval === 'string' && entry.interval
+                    ? entry.interval
+                    : item.srsInterval,
+              };
+            }
+            return item;
+          });
+        }
       }
     } catch {
       // Ignore storage access errors in sandboxed frames

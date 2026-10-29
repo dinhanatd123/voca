@@ -159,7 +159,8 @@ export const LearnThreeTiersTab: React.FC<LearnThreeTiersTabProps> = ({
             ) : (
               filteredVocab.map((item) => {
                 const isSelected = item.id === selectedWord.id;
-                const statusMeta = SRS_STATUS_LABELS[item.srsStatus];
+                const statusMeta =
+                  SRS_STATUS_LABELS[item.srsStatus] || SRS_STATUS_LABELS.due;
                 const sampleChunk =
                   item.contexts[activeDomain]?.chunk.split('/')[0].trim() || '';
 

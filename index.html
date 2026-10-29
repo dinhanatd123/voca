@@ -16,6 +16,30 @@
   <body class="bg-slate-50 text-slate-900 antialiased selection:bg-indigo-600 selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      (function () {
+        function loadStaticFallbackIfNeeded() {
+          var isViteDev = !!document.querySelector('script[src*="@vite/client"]');
+          var isViteBuilt = !!document.querySelector('script[src*="assets/index-"]');
+          if (!isViteDev && !isViteBuilt) {
+            var css = document.createElement('link');
+            css.rel = 'stylesheet';
+            css.href = './public/static-bundle.css';
+            document.head.appendChild(css);
+
+            var js = document.createElement('script');
+            js.type = 'module';
+            js.src = './public/static-bundle.js';
+            document.body.appendChild(js);
+          }
+        }
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', loadStaticFallbackIfNeeded);
+        } else {
+          loadStaticFallbackIfNeeded();
+        }
+      })();
+    </script>
   </body>
 </html>
 
