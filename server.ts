@@ -15,6 +15,7 @@ async function startServer() {
   const PORT = 3000;
 
   app.use(express.json());
+  app.use('/public', express.static(path.join(__dirname, 'public')));
 
   app.post('/api/evaluate-sentence', async (req, res) => {
     const {
