@@ -20,7 +20,6 @@ import { LearnThreeTiersTab } from './components/LearnThreeTiersTab';
 import { MatrixTab } from './components/MatrixTab';
 import { PracticeThreeStepsTab } from './components/PracticeThreeStepsTab';
 import { PhrasebookTab } from './components/PhrasebookTab';
-import { ArchitectureTab } from './components/ArchitectureTab';
 import { FlashcardModal, AddWordModal } from './components/Modals';
 import { WinterNoelCapybara, SantaCapybaraSvg } from './components/WinterNoelCapybara';
 
@@ -527,18 +526,7 @@ export default function App() {
                   : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
               }`}
             >
-              <span>4. Sổ Tay Công Sở Cấp Tốc</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveTab('tab-database')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition flex items-center gap-1.5 cursor-pointer ${
-                activeTab === 'tab-database'
-                  ? 'bg-brand-600 text-white shadow-xs'
-                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-200/70 dark:hover:bg-slate-800'
-              }`}
-            >
-              <span>5. Thiết Kế Database &amp; Xuất Dữ Liệu</span>
+              <span>4. Sổ Tay Mẫu Câu Cấp Tốc</span>
             </button>
           </nav>
         </div>
@@ -715,15 +703,6 @@ export default function App() {
               onToggleStar={handleToggleStarPhrase}
               onSpeak={handleSpeak}
               onCopy={handleCopy}
-            />
-          )}
-
-          {activeTab === 'tab-database' && (
-            <ArchitectureTab
-              currentWord={currentWord}
-              allWords={wordsData}
-              phrasebook={phrasebookData}
-              onToast={showToast}
             />
           )}
         </section>
