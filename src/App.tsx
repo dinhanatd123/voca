@@ -21,7 +21,7 @@ import { MatrixTab } from './components/MatrixTab';
 import { PracticeThreeStepsTab } from './components/PracticeThreeStepsTab';
 import { PhrasebookTab } from './components/PhrasebookTab';
 import { FlashcardModal, AddWordModal } from './components/Modals';
-import { WinterNoelCapybara, SantaCapybaraSvg } from './components/WinterNoelCapybara';
+import { WinterNoelCapybara } from './components/WinterNoelCapybara';
 
 const STORAGE_KEY_WORDS = 'lexiflow_pro_words_v2';
 const STORAGE_KEY_PB = 'lexiflow_pro_pb_v2';
@@ -565,94 +565,7 @@ export default function App() {
         />
 
         {/* RIGHT CONTENT AREA */}
-        <section className="flex-1 min-w-0 w-full space-y-5 pb-16">
-          {/* Interactive Winter Noel Capybara Trio Banner */}
-          {noelEnabled && (
-            <div className="noel-scroll-card relative overflow-hidden rounded-2xl bg-gradient-to-r from-red-700 via-rose-600 to-emerald-700 text-white p-4 sm:p-5 shadow-md border border-amber-300/40">
-              <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4 relative z-10">
-                <div className="space-y-1">
-                  <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full bg-white/20 text-amber-200 text-[11px] font-extrabold uppercase tracking-wider">
-                    ❄️ Lễ Hội Mùa Đông • Đội Quân Capybara Noel Học Từ Vựng
-                  </div>
-                  <h2 className="text-base sm:text-lg font-extrabold flex items-center gap-2">
-                    <span>🎄 Lướt cuộn trang cùng 3 chú Capybara mặc áo Noel!</span>
-                    <span className="text-xs px-2 py-0.5 rounded-lg bg-amber-400 text-slate-950 font-black">
-                      +{sessionXp} XP Noel
-                    </span>
-                  </h2>
-                  <p className="text-xs text-red-100 max-w-2xl">
-                    Cuộn chuột lên/xuống để xem <strong>Capy Santa</strong> trượt tuyết theo tiến độ học bên phải màn hình, hoặc bấm trực tiếp vào 3 chú Capybara bên dưới để nghe phát âm &amp; nhận thưởng XP!
-                  </p>
-                </div>
-
-                {/* 3 Interactive Santa Capybaras */}
-                <div className="grid grid-cols-3 gap-2.5 sm:gap-3 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSessionXp((prev) => prev + 5);
-                      handleSpeak(
-                        `Ho ho ho! Let's master the word ${currentWord.word}!`,
-                        'en-US'
-                      );
-                      showToast(
-                        `🛷 Capy Santa Trượt Tuyết tặng bạn +5 XP cho từ "${currentWord.word}"!`
-                      );
-                    }}
-                    className="group flex flex-col items-center p-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 transition cursor-pointer"
-                  >
-                    <div className="animate-capy-bob">
-                      <SantaCapybaraSvg variant="sleigh" className="w-14 h-14 sm:w-16 sm:h-16" />
-                    </div>
-                    <span className="text-[11px] font-extrabold text-amber-200 mt-1">
-                      🛷 Capy Trượt Tuyết
-                    </span>
-                    <span className="text-[10px] text-white/80">Bấm nhận +5 XP</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSessionXp((prev) => prev + 5);
-                      handleSpeak(currentWord.contexts.workplace.chunk, 'en-US');
-                      showToast(
-                        `🍊 Capy Noel Đội Quýt đọc cụm "${currentWord.contexts.workplace.chunk}" (+5 XP)!`
-                      );
-                    }}
-                    className="group flex flex-col items-center p-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 transition cursor-pointer"
-                  >
-                    <div className="animate-capy-bob">
-                      <SantaCapybaraSvg variant="onsen" className="w-14 h-14 sm:w-16 sm:h-16" />
-                    </div>
-                    <span className="text-[11px] font-extrabold text-amber-200 mt-1">
-                      🍊 Capy Đội Quýt
-                    </span>
-                    <span className="text-[10px] text-white/80">Nghe Collocation</span>
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSessionXp((prev) => prev + 5);
-                      handleSpeak(currentWord.contexts.workplace.sentence, 'en-US');
-                      showToast(
-                        `🦌 Capy Tuần Lộc đọc câu mẫu Tầng 3 (+5 XP)!`
-                      );
-                    }}
-                    className="group flex flex-col items-center p-2 rounded-xl bg-white/15 hover:bg-white/25 border border-white/25 transition cursor-pointer"
-                  >
-                    <div className="animate-capy-waddle">
-                      <SantaCapybaraSvg variant="reindeer" className="w-14 h-14 sm:w-16 sm:h-16" />
-                    </div>
-                    <span className="text-[11px] font-extrabold text-amber-200 mt-1">
-                      🦌 Capy Tuần Lộc
-                    </span>
-                    <span className="text-[10px] text-white/80">Nghe Câu Tầng 3</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+        <section className="flex-1 min-w-0 w-full space-y-5 pb-24 relative z-10">
           {activeTab === 'tab-tier' && (
             <LearnThreeTiersTab
               currentWord={currentWord}
