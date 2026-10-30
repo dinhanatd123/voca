@@ -1,6 +1,7 @@
 import { VocabItem, PhrasebookItem } from '../types';
+import { OXFORD_AUDIO_MAP, OXFORD_EXTRA_WORDS } from './oxfordExtraWords';
 
-export const DEFAULT_WORDS: VocabItem[] = [
+const CORE_10_WORDS: VocabItem[] = [
   {
     id: 'accommodate',
     word: 'accommodate',
@@ -808,6 +809,14 @@ export const DEFAULT_WORDS: VocabItem[] = [
     },
     sentenceStarter: 'Hi team, I just wanted to follow up on ',
   },
+];
+
+export const DEFAULT_WORDS: VocabItem[] = [
+  ...CORE_10_WORDS.map((w) => ({
+    ...w,
+    ...(OXFORD_AUDIO_MAP[w.id] || {}),
+  })),
+  ...OXFORD_EXTRA_WORDS,
 ];
 
 export const DEFAULT_PHRASEBOOK: PhrasebookItem[] = [

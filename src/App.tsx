@@ -23,7 +23,7 @@ import { PhrasebookTab } from './components/PhrasebookTab';
 import { FlashcardModal, AddWordModal } from './components/Modals';
 import { WinterNoelCapybara } from './components/WinterNoelCapybara';
 
-const STORAGE_KEY_WORDS = 'lexiflow_pro_words_v2';
+const STORAGE_KEY_WORDS = 'lexiflow_pro_words_oxford_v3';
 const STORAGE_KEY_PB = 'lexiflow_pro_pb_v2';
 const STORAGE_KEY_THEME = 'lexiflow_pro_theme';
 
@@ -155,8 +155,12 @@ export default function App() {
     setCurrentWordId(wordsData[nextIdx].id);
   };
 
-  const handleSpeak = (text: string, lang: 'en-US' | 'en-GB' = 'en-US') => {
-    speakEnglishText(text, lang, speechRate);
+  const handleSpeak = (
+    text: string,
+    lang: 'en-US' | 'en-GB' = 'en-US',
+    oxfordMp3Url?: string
+  ) => {
+    speakEnglishText(text, lang, speechRate, oxfordMp3Url);
   };
 
   const handleCopy = (text: string, label = 'nội dung') => {
@@ -176,7 +180,7 @@ export default function App() {
         searchInputRef.current?.focus();
       } else if (e.key.toLowerCase() === 's') {
         e.preventDefault();
-        handleSpeak(currentWord.word, 'en-US');
+        handleSpeak(currentWord.word, 'en-US', currentWord.audioUs);
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         handleNavigateWord(1);
@@ -250,9 +254,14 @@ export default function App() {
     wordText: string;
     posCefr: string;
     ipa: string;
+    ipaUk?: string;
     meaningVi: string;
+    meaningEn?: string;
     chunk: string;
     sentence: string;
+    audioUs?: string;
+    audioUk?: string;
+    oxfordUrl?: string;
   }) => {
     const newWord = createCustomWordEntry(input);
     setWordsData((prev) => [newWord, ...prev]);
@@ -296,14 +305,14 @@ export default function App() {
         <div className="max-w-[1440px] mx-auto flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-brand-500/20 text-brand-300 border border-brand-400/30">
-              LexiFlow Pro v2.5
+              LexiFlow Pro · Oxford 3000/5000
             </span>
             <span className="font-medium text-slate-300 hidden sm:inline">
-              Phương pháp Học 3 Tầng:{' '}
+              Kho từ vựng chuẩn{' '}
               <strong className="text-white">
-                Từ đơn → Cụm Collocation → Câu hoàn chỉnh
+                Oxford Learner&apos;s Dictionaries (Từ → Cụm → Câu)
               </strong>{' '}
-              (Tích hợp SRS SM-2 &amp; Lưu trữ tự động)
+              · Tích hợp Audio MP3 Bản xứ &amp; SRS SM-2
             </span>
           </div>
           <div className="flex items-center gap-3">

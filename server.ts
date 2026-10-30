@@ -17,6 +17,95 @@ async function startServer() {
   app.use(express.json());
   app.use('/public', express.static(path.join(__dirname, 'public')));
 
+  // Live lookup endpoint from Oxford Learner's Dictionaries
+  app.get('/api/oxford-lookup', async (req, res) => {
+    const rawWord = String(req.query.word || '')
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-\s]/g, '')
+      .replace(/\s+/g, '-');
+
+    if (!rawWord) {
+      res.status(400).json({ error: 'Vui lòng nhập từ vựng tiếng Anh cần tra cứu.' });
+      return;
+    }
+
+    const oxfordUrl = `https://www.oxfordlearnersdictionaries.com/definition/english/${encodeURIComponent(
+      rawWord
+    )}`;
+
+    try {
+      const response = await fetch(oxfordUrl, {
+        headers: {
+          'User-Agent':
+            'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+          Accept: 'text/html,application/xhtml+xml',
+        },
+      });
+
+      if (!response.ok) {
+        res.status(404).json({
+          error: `Không tìm thấy từ "${rawWord}" trên Oxford Learner's Dictionaries.`,
+        });
+        return;
+      }
+
+      const html = await response.text();
+      const phons = [...html.matchAll(/<span class="phon">([^<]+)<\/span>/g)].map(
+        (m) => m[1].trim()
+      );
+      const mp3s = [...html.matchAll(/data-src-mp3="([^"]+)"/g)].map((m) =>
+        m[1].trim()
+      );
+      const defs = [
+        ...html.matchAll(/<span class="def"[^>]*>([\s\S]*?)<\/span>/g),
+      ]
+        .map((m) => m[1].replace(/<[^>]+>/g, '').trim())
+        .filter(Boolean);
+      const examples = [
+        ...html.matchAll(/<span class="x"[^>]*>([\s\S]*?)<\/span>/g),
+      ]
+        .map((m) => m[1].replace(/<[^>]+>/g, '').trim())
+        .filter(Boolean);
+      const posMatch = html.match(/<span class="pos"[^>]*>([^<]+)<\/span>/i);
+      const cefrMatch = html.match(
+        /ox3000-([abc][12])|ox5000-([abc][12])|cefr="([abc][12])"/i
+      );
+
+      const ipaUk = phons[0] || '/ˈwɜːd/';
+      const ipaUs = phons[1] || ipaUk;
+      const audioUk = mp3s.find((u) => u.includes('_gb_')) || '';
+      const audioUs = mp3s.find((u) => u.includes('_us_')) || '';
+      const posRaw = posMatch ? posMatch[1].trim().toLowerCase() : 'verb';
+      const pos =
+        posRaw.includes('noun')
+          ? 'Noun'
+          : posRaw.includes('adj')
+          ? 'Adjective'
+          : 'Verb';
+      const cefr = cefrMatch
+        ? (cefrMatch[1] || cefrMatch[2] || cefrMatch[3] || 'B2').toUpperCase()
+        : 'B2-C1';
+
+      res.json({
+        word: rawWord.replace(/-/g, ' '),
+        pos,
+        cefr,
+        ipaUk,
+        ipaUs,
+        audioUk,
+        audioUs,
+        oxfordUrl: response.url || oxfordUrl,
+        definitionEn: defs[0] || '',
+        examples: examples.slice(0, 4),
+      });
+    } catch {
+      res.status(500).json({
+        error: 'Không thể kết nối tới Oxford Learner’s Dictionaries lúc này.',
+      });
+    }
+  });
+
   app.post('/api/evaluate-sentence', async (req, res) => {
     const {
       word,
@@ -94,7 +183,7 @@ Yêu cầu trả về JSON:
         structureFeedback: parsed.structureFeedback,
         upgradedSentence: parsed.upgradedSentence,
       });
-    } catch (error) {
+    } catch {
       res.status(200).json({ fallback: true });
     }
   });

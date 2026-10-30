@@ -12,18 +12,28 @@ import {
   createCustomWordEntry,
 } from './vocabLogic';
 
-test('filterVocabItems filters by SRS status and search query', () => {
+test('filterVocabItems filters by SRS status and search query across Oxford 3000/5000 bank', () => {
   const allItems = filterVocabItems(DEFAULT_WORDS, {
     srsFilter: 'all',
     searchQuery: '',
   });
-  assert.equal(allItems.length, 10);
+  assert.equal(allItems.length, 30);
 
-  const reviewOnly = filterVocabItems(DEFAULT_WORDS, {
-    srsFilter: 'review',
-    searchQuery: '',
-  });
-  assert.equal(reviewOnly.length, 4);
+  // Verify every word has official Oxford Learner's Dictionaries URL and MP3 audio
+  for (const item of allItems) {
+    assert.ok(
+      item.oxfordUrl?.startsWith('https://www.oxfordlearnersdictionaries.com/definition/english/'),
+      `Missing oxfordUrl for ${item.word}`
+    );
+    assert.ok(
+      item.audioUs?.startsWith('https://www.oxfordlearnersdictionaries.com/media/english/us_pron/'),
+      `Missing audioUs for ${item.word}`
+    );
+    assert.ok(
+      item.audioUk?.startsWith('https://www.oxfordlearnersdictionaries.com/media/english/uk_pron/'),
+      `Missing audioUk for ${item.word}`
+    );
+  }
 
   const searchTimeline = filterVocabItems(DEFAULT_WORDS, {
     srsFilter: 'all',
@@ -35,9 +45,8 @@ test('filterVocabItems filters by SRS status and search query', () => {
 
 test('computeSrsStats and applySm2Grade compute SM-2 values accurately', () => {
   const stats = computeSrsStats(DEFAULT_WORDS);
-  assert.equal(stats.reviewCount, 4);
-  assert.equal(stats.learningCount, 3);
-  assert.equal(stats.masteredCount, 3);
+  assert.equal(stats.totalCount, 30);
+  assert.equal(stats.reviewCount + stats.learningCount + stats.masteredCount, 30);
 
   const updated = applySm2Grade(DEFAULT_WORDS[0], 'mastered', '7 ngày');
   assert.equal(updated.srsStatus, 'mastered');

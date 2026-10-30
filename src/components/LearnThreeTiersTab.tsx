@@ -9,7 +9,7 @@ interface LearnThreeTiersTabProps {
   trackFilter: TrackFilter;
   onPrevWord: () => void;
   onNextWord: () => void;
-  onSpeak: (text: string, lang?: 'en-US' | 'en-GB') => void;
+  onSpeak: (text: string, lang?: 'en-US' | 'en-GB', oxfordMp3Url?: string) => void;
   onCopy: (text: string, label: string) => void;
   onGradeSrs: (status: SrsStatus, intervalText: string) => void;
   onGoToPractice: () => void;
@@ -117,7 +117,7 @@ export const LearnThreeTiersTab: React.FC<LearnThreeTiersTabProps> = ({
               Tầng 1 · Core Word
             </span>
             <span className="text-xs text-slate-500 dark:text-slate-400">
-              Hiểu bản chất, phát âm chuẩn IPA & tránh bẫy ngữ cảnh
+              Chuẩn Oxford 3000/5000 · IPA &amp; Audio bản xứ từ Oxford Learner&apos;s Dictionaries
             </span>
           </div>
           <div className="flex items-center gap-2">
@@ -156,6 +156,18 @@ export const LearnThreeTiersTab: React.FC<LearnThreeTiersTabProps> = ({
                   CEFR {w.cefr}
                 </span>
                 <span className={srsBadgeInfo.cls}>{srsBadgeInfo.text}</span>
+                {w.oxfordUrl && (
+                  <a
+                    href={w.oxfordUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-bold bg-sky-50 text-sky-700 hover:bg-sky-100 dark:bg-sky-950/70 dark:text-sky-300 border border-sky-200/70 dark:border-sky-800 transition"
+                    title="Xem mục từ gốc trên Oxford Learner's Dictionaries"
+                  >
+                    <span>📖 Oxford Dict</span>
+                    <span className="text-[10px]">↗</span>
+                  </a>
+                )}
               </div>
 
               {/* IPA & US/UK Pronunciation Buttons */}
@@ -168,9 +180,13 @@ export const LearnThreeTiersTab: React.FC<LearnThreeTiersTabProps> = ({
                   <button
                     type="button"
                     aria-label="Nghe phát âm Anh-Mỹ"
-                    onClick={() => onSpeak(w.word, 'en-US')}
-                    className="p-1 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition"
-                    title="Nghe phát âm Anh-Mỹ"
+                    onClick={() => onSpeak(w.word, 'en-US', w.audioUs)}
+                    className="p-1 rounded-lg bg-brand-600 text-white hover:bg-brand-700 transition cursor-pointer"
+                    title={
+                      w.audioUs
+                        ? 'Nghe thu âm chuẩn Oxford Anh-Mỹ (MP3)'
+                        : 'Nghe phát âm Anh-Mỹ'
+                    }
                   >
                     <svg
                       className="w-3.5 h-3.5"
@@ -196,9 +212,13 @@ export const LearnThreeTiersTab: React.FC<LearnThreeTiersTabProps> = ({
                   <button
                     type="button"
                     aria-label="Nghe phát âm Anh-Anh"
-                    onClick={() => onSpeak(w.word, 'en-GB')}
-                    className="p-1 rounded-lg bg-slate-700 text-white hover:bg-slate-800 transition"
-                    title="Nghe phát âm Anh-Anh"
+                    onClick={() => onSpeak(w.word, 'en-GB', w.audioUk)}
+                    className="p-1 rounded-lg bg-slate-700 text-white hover:bg-slate-800 transition cursor-pointer"
+                    title={
+                      w.audioUk
+                        ? 'Nghe thu âm chuẩn Oxford Anh-Anh (MP3)'
+                        : 'Nghe phát âm Anh-Anh'
+                    }
                   >
                     <svg
                       className="w-3.5 h-3.5"
@@ -219,8 +239,8 @@ export const LearnThreeTiersTab: React.FC<LearnThreeTiersTabProps> = ({
             </div>
 
             {/* SM-2 Active Self-Grading Panel */}
-            <div className="bg-slate-50 dark:bg-slate-800/70 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col gap-2 min-w-[260px]">
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-500 dark:text-slate-400">
+            <div className="bg-slate-50 dark:bg-slate-800/70 p-3.5 rounded-2xl border border-slate-200/80 dark:border-slate-700/80 flex flex-col gap-2 min-w-[290px] shrink-0">
+              <div className="flex items-center justify-between gap-3 text-[11px] font-bold text-slate-500 dark:text-slate-400 whitespace-nowrap">
                 <span>ĐÁNH GIÁ MỨC ĐỘ NHỚ (SRS SM-2)</span>
                 <span className="font-mono text-brand-600 dark:text-brand-400">
                   EF: {w.ef.toFixed(1)} · Ôn: {w.intervalText}

@@ -48,6 +48,9 @@ export interface VocabItem {
   word: string;
   ipaUs: string;
   ipaUk: string;
+  audioUs?: string;
+  audioUk?: string;
+  oxfordUrl?: string;
   pos: string;
   cefr: string;
   srsStatus: SrsStatus;

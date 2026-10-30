@@ -4,7 +4,7 @@ import { VocabItem, SrsStatus } from '../types';
 interface FlashcardModalProps {
   isOpen: boolean;
   words: VocabItem[];
-  onSpeak: (text: string, lang?: 'en-US' | 'en-GB') => void;
+  onSpeak: (text: string, lang?: 'en-US' | 'en-GB', oxfordMp3Url?: string) => void;
   onClose: () => void;
   onGradeWord: (wordId: string, status: SrsStatus, intervalText: string) => void;
 }
@@ -35,7 +35,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-1 rounded-lg bg-amber-100 text-amber-800 text-xs font-extrabold">
-              ⚡ Flashcard 3 Tầng
+              ⚡ Flashcard 3 Tầng (Oxford 3000/5000)
             </span>
             <span className="text-xs font-semibold text-slate-500">
               {(fcIndex % words.length) + 1}/{words.length}
@@ -80,11 +80,11 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                   type="button"
                   onClick={(e) => {
                     e.stopPropagation();
-                    onSpeak(w.word, 'en-US');
+                    onSpeak(w.word, 'en-US', w.audioUs);
                   }}
                   className="text-xs px-2 py-1 rounded bg-brand-600 text-white font-bold cursor-pointer"
                 >
-                  🔊 Phát âm
+                  🔊 Phát âm Oxford
                 </button>
               </div>
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -114,7 +114,7 @@ export const FlashcardModal: React.FC<FlashcardModalProps> = ({
                 </div>
               </div>
               <p className="text-xs italic text-slate-600 dark:text-slate-300 pt-1">
-                📌 "{w.contexts.workplace.sentence}"
+                📌 &quot;{w.contexts.workplace.sentence}&quot;
               </p>
             </div>
           )}
@@ -162,9 +162,14 @@ interface AddWordModalProps {
     wordText: string;
     posCefr: string;
     ipa: string;
+    ipaUk?: string;
     meaningVi: string;
+    meaningEn?: string;
     chunk: string;
     sentence: string;
+    audioUs?: string;
+    audioUk?: string;
+    oxfordUrl?: string;
   }) => void;
 }
 
@@ -176,11 +181,113 @@ export const AddWordModal: React.FC<AddWordModalProps> = ({
   const [wordText, setWordText] = useState('');
   const [posCefr, setPosCefr] = useState('Verb|B2-C1');
   const [ipa, setIpa] = useState('');
+  const [ipaUk, setIpaUk] = useState('');
   const [meaningVi, setMeaningVi] = useState('');
+  const [meaningEn, setMeaningEn] = useState('');
   const [chunk, setChunk] = useState('');
   const [sentence, setSentence] = useState('');
+  const [audioUs, setAudioUs] = useState<string | undefined>(undefined);
+  const [audioUk, setAudioUk] = useState<string | undefined>(undefined);
+  const [oxfordUrl, setOxfordUrl] = useState<string | undefined>(undefined);
+  const [lookupStatus, setLookupStatus] = useState<string | null>(null);
+  const [isLookingUp, setIsLookingUp] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleOxfordLookup = async () => {
+    const cleanWord = wordText
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9-\s]/g, '')
+      .replace(/\s+/g, '-');
+    if (!cleanWord) {
+      setLookupStatus('⚠️ Vui lòng nhập từ tiếng Anh trước khi tra cứu Oxford!');
+      return;
+    }
+
+    setIsLookingUp(true);
+    setLookupStatus('⏳ Đang lấy IPA, Audio MP3 & câu mẫu từ Oxford Learner’s Dictionaries...');
+
+    try {
+      const resp = await fetch(`/api/oxford-lookup?word=${encodeURIComponent(cleanWord)}`);
+      if (resp.ok) {
+        const data = await resp.json();
+        if (data.ipaUs) setIpa(data.ipaUs);
+        if (data.ipaUk) setIpaUk(data.ipaUk);
+        if (data.audioUs) setAudioUs(data.audioUs);
+        if (data.audioUk) setAudioUk(data.audioUk);
+        if (data.oxfordUrl) setOxfordUrl(data.oxfordUrl);
+        if (data.definitionEn) {
+          setMeaningEn(data.definitionEn);
+          if (!meaningVi.trim()) {
+            setMeaningVi(data.definitionEn);
+          }
+        }
+        if (Array.isArray(data.examples) && data.examples.length > 0) {
+          const ex = data.examples[0];
+          setSentence(ex);
+          if (!chunk.trim()) {
+            setChunk(ex.split(/\s+/).slice(0, 5).join(' ').replace(/[.,;!?]+$/, ''));
+          }
+        }
+        setLookupStatus(
+          `✅ Đã đồng bộ từ Oxford Learner's Dictionaries (${data.pos || 'Word'} · ${
+            data.cefr || 'B2'
+          })!`
+        );
+        setIsLookingUp(false);
+        return;
+      }
+    } catch {
+      // Fallback for static hosting if backend route is unavailable
+    }
+
+    try {
+      const fallbackResp = await fetch(
+        `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(cleanWord)}`
+      );
+      if (fallbackResp.ok) {
+        const arr = await fallbackResp.json();
+        const entry = arr?.[0];
+        const phonetic =
+          entry?.phonetic || entry?.phonetics?.find((p: { text?: string }) => p.text)?.text || '';
+        const audio =
+          entry?.phonetics?.find((p: { audio?: string }) => p.audio)?.audio || undefined;
+        const firstMeaning = entry?.meanings?.[0];
+        const def = firstMeaning?.definitions?.[0]?.definition || '';
+        const ex =
+          firstMeaning?.definitions?.find((d: { example?: string }) => d.example)?.example || '';
+
+        if (phonetic) {
+          setIpa(phonetic);
+          setIpaUk(phonetic);
+        }
+        if (audio) setAudioUs(audio);
+        setOxfordUrl(
+          `https://www.oxfordlearnersdictionaries.com/definition/english/${encodeURIComponent(
+            cleanWord
+          )}`
+        );
+        if (def) {
+          setMeaningEn(def);
+          if (!meaningVi.trim()) setMeaningVi(def);
+        }
+        if (ex) {
+          setSentence(ex);
+          if (!chunk.trim()) {
+            setChunk(ex.split(/\s+/).slice(0, 5).join(' ').replace(/[.,;!?]+$/, ''));
+          }
+        }
+        setLookupStatus('✅ Đã lấy dữ liệu phiên âm & định nghĩa Oxford thành công!');
+      } else {
+        setLookupStatus('⚠️ Không tìm thấy từ này trên Oxford, bạn có thể tự nhập bên dưới.');
+      }
+    } catch {
+      setLookupStatus('⚠️ Không thể kết nối từ điển, vui lòng nhập thủ công.');
+    } finally {
+      setIsLookingUp(false);
+    }
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -189,25 +296,41 @@ export const AddWordModal: React.FC<AddWordModalProps> = ({
       wordText,
       posCefr,
       ipa,
+      ipaUk: ipaUk || ipa,
       meaningVi,
+      meaningEn,
       chunk,
       sentence,
+      audioUs,
+      audioUk,
+      oxfordUrl,
     });
     setWordText('');
     setIpa('');
+    setIpaUk('');
     setMeaningVi('');
+    setMeaningEn('');
     setChunk('');
     setSentence('');
+    setAudioUs(undefined);
+    setAudioUk(undefined);
+    setOxfordUrl(undefined);
+    setLookupStatus(null);
     onClose();
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
       <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-xl w-full p-6 shadow-2xl my-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
-            ➕ Thêm Từ Vựng 3 Tầng Mới
-          </h3>
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
+              ➕ Thêm Từ Vựng 3 Tầng &amp; Tra Cứu Oxford
+            </h3>
+            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+              Nhập từ tiếng Anh và bấm nút <strong>Lấy từ Oxford</strong> để tự động điền IPA, Audio MP3 &amp; câu mẫu
+            </p>
+          </div>
           <button
             type="button"
             onClick={onClose}
@@ -216,20 +339,31 @@ export const AddWordModal: React.FC<AddWordModalProps> = ({
             ✕
           </button>
         </div>
+
         <form onSubmit={handleSubmit} className="space-y-3 text-xs">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
+            <div className="sm:col-span-2">
               <label className="font-bold text-slate-600 dark:text-slate-300 block mb-1">
                 Từ vựng (Headword) *
               </label>
-              <input
-                type="text"
-                required
-                value={wordText}
-                onChange={(e) => setWordText(e.target.value)}
-                placeholder="VD: collaborate"
-                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2"
-              />
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  required
+                  value={wordText}
+                  onChange={(e) => setWordText(e.target.value)}
+                  placeholder="VD: resilience, scrutinize..."
+                  className="flex-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2"
+                />
+                <button
+                  type="button"
+                  onClick={handleOxfordLookup}
+                  disabled={isLookingUp}
+                  className="px-3 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 disabled:opacity-50 text-white font-bold whitespace-nowrap transition cursor-pointer"
+                >
+                  {isLookingUp ? '⏳ Đang tải...' : '📖 Lấy từ Oxford'}
+                </button>
+              </div>
             </div>
             <div>
               <label className="font-bold text-slate-600 dark:text-slate-300 block mb-1">
@@ -242,36 +376,46 @@ export const AddWordModal: React.FC<AddWordModalProps> = ({
               >
                 <option value="Verb|B2-C1">Verb (B2-C1)</option>
                 <option value="Noun|B2-C1">Noun (B2-C1)</option>
-                <option value="Adjective|C1">Adjective (C1)</option>
+                <option value="Adjective|B2-C1">Adjective (B2-C1)</option>
                 <option value="Phrasal Verb|B2">Phrasal Verb (B2)</option>
               </select>
             </div>
+          </div>
+
+          {lookupStatus && (
+            <div className="px-3 py-2 rounded-xl bg-sky-50 dark:bg-sky-950/50 border border-sky-200 dark:border-sky-800 text-sky-800 dark:text-sky-200 text-[11px] font-semibold">
+              {lookupStatus}
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="font-bold text-slate-600 dark:text-slate-300 block mb-1">
-                Phiên âm IPA
+                Phiên âm IPA (🇺🇸 US / 🇬🇧 UK)
               </label>
               <input
                 type="text"
                 value={ipa}
                 onChange={(e) => setIpa(e.target.value)}
-                placeholder="/kəˈlæb.ə.reɪt/"
+                placeholder="/rɪˈzɪl.jəns/"
+                className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2"
+              />
+            </div>
+            <div>
+              <label className="font-bold text-slate-600 dark:text-slate-300 block mb-1">
+                Nghĩa cốt lõi Tiếng Việt (hoặc Định nghĩa Oxford) *
+              </label>
+              <input
+                type="text"
+                required
+                value={meaningVi}
+                onChange={(e) => setMeaningVi(e.target.value)}
+                placeholder="VD: Khả năng phục hồi nhanh sau khó khăn"
                 className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2"
               />
             </div>
           </div>
-          <div>
-            <label className="font-bold text-slate-600 dark:text-slate-300 block mb-1">
-              Nghĩa cốt lõi Tiếng Việt *
-            </label>
-            <input
-              type="text"
-              required
-              value={meaningVi}
-              onChange={(e) => setMeaningVi(e.target.value)}
-              placeholder="VD: Hợp tác, cộng tác chặt chẽ"
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2"
-            />
-          </div>
+
           <div>
             <label className="font-bold text-brand-600 dark:text-brand-400 block mb-1">
               🧩 Cụm Collocation Trọng Tâm (Tầng 2) *
@@ -281,7 +425,7 @@ export const AddWordModal: React.FC<AddWordModalProps> = ({
               required
               value={chunk}
               onChange={(e) => setChunk(e.target.value)}
-              placeholder="VD: collaborate closely across departments"
+              placeholder="VD: build long-term supply chain resilience"
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2"
             />
           </div>
@@ -294,7 +438,7 @@ export const AddWordModal: React.FC<AddWordModalProps> = ({
               required
               value={sentence}
               onChange={(e) => setSentence(e.target.value)}
-              placeholder="Our engineering and design teams collaborate closely across departments to launch the product."
+              placeholder="Companies must diversify suppliers to build long-term supply chain resilience."
               className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 px-3 py-2"
             />
           </div>

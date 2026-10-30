@@ -149,13 +149,19 @@ export function createCustomWordEntry(input: {
   wordText: string;
   posCefr: string;
   ipa: string;
+  ipaUk?: string;
   meaningVi: string;
+  meaningEn?: string;
   chunk: string;
   sentence: string;
+  audioUs?: string;
+  audioUk?: string;
+  oxfordUrl?: string;
 }): VocabItem {
   const wordText = input.wordText.trim();
   const [pos, cefr] = input.posCefr.split('|');
   const ipa = input.ipa.trim() || '/ˈwɜːd/';
+  const ipaUk = (input.ipaUk && input.ipaUk.trim()) || ipa;
   const meaningVi = input.meaningVi.trim();
   const chunk = input.chunk.trim();
   const sentence = input.sentence.trim();
@@ -165,14 +171,23 @@ export function createCustomWordEntry(input: {
     id: `${slug}-${Date.now().toString().slice(-3)}`,
     word: wordText,
     ipaUs: ipa,
-    ipaUk: ipa,
+    ipaUk,
+    audioUs: input.audioUs,
+    audioUk: input.audioUk,
+    oxfordUrl:
+      input.oxfordUrl ||
+      `https://www.oxfordlearnersdictionaries.com/definition/english/${encodeURIComponent(
+        slug
+      )}`,
     pos: pos || 'Verb',
     cefr: cefr || 'B2-C1',
     srsStatus: 'review',
     ef: 2.5,
     intervalText: 'Hôm nay',
     meaningVi,
-    meaningEn: `Core business and academic vocabulary: ${wordText}.`,
+    meaningEn:
+      input.meaningEn?.trim() ||
+      `Core business and academic vocabulary from Oxford Learner's Dictionaries: ${wordText}.`,
     trapTip: `Hãy luôn học "${wordText}" đi kèm cụm "${chunk}" để đặt câu chuẩn xác.`,
     family: [wordText],
     contexts: {
